@@ -50,7 +50,6 @@ nano-agent/
 ├── tools.py
 ├── tool_defs.py
 ├── guardrails.py
-├── mock_llm.py
 ├── utils.py
 └── config.py
 ```

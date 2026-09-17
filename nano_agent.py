@@ -23,22 +23,17 @@ Notes
 
 """
 import json
-import requests
 import tools
 from tool_defs import TOOL_DEFS
 from guardrails import INPUT_RULES, OUTPUT_RULES, check_gate
 from utils import trace
-# from config import LLM_CONFIG_MOCK as LLM_CONFIG
-from config import LLM_CONFIG_GEMINI as LLM_CONFIG
-from utils import debug
-
+from llm_client import ask_llm
 
 # SYSTEM PROMPT
 SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. schedule() to add next steps. Use them when needed. Be concise."
 
 # MEMORY
 memory_dict = {}
-
 
 # CONVERSATION AND STATE
 conversation = [
@@ -62,36 +57,6 @@ TOOL_REGISTRY = {
     "remember": tools.make_remember(memory_dict),
     "schedule": tools.make_schedule(task_queue),
 }
-
-# ------ LLM CLIENT ------
-def ask_llm(message):
-    """Post the current conversation to the LLM and retrieve its answer."""
-
-    trace("llm_call", f"Asking: {message}")
-
-    response = requests.post(
-        # Where to post
-        f"{LLM_CONFIG['base_url']}/chat/completions",
-        # Metadata (credentials, type)
-        headers={
-            "Authorization": f"Bearer {LLM_CONFIG['api_key']}",
-            "Content-Type": "application/json"
-        },
-        # What to post (data)
-        json={
-            "model": LLM_CONFIG['model'],
-            "messages": conversation,
-            "tools": TOOL_DEFS,
-        }
-    ) # request.post
-
-    # Bytes to text
-    # request() provides shortcut for: json.loads(await response.string())
-    # This converst HTTP bytes -> text -> JSON -> Python object
-    response_json = response.json()
-    debug("response_json\n", response_json)
-    return response_json["choices"][0]["message"]
-
 
 # ------ ORCHESTRATOR ------
 def agent(task, max_iter = 5):
@@ -118,7 +83,7 @@ def agent(task, max_iter = 5):
     for iter in range(max_iter):
         state["turns"][turn_id]["iterations"] = iter+1
         trace("llm_call", f"Turn: {turn_id}  Iterations: {iter+1}")
-        llm_response = ask_llm(task)
+        llm_response = ask_llm(conversation, TOOL_DEFS)
         if not llm_response.get("tool_calls"): # not tasks left -> final answer
             final_answer = llm_response.get('content', '')
             # ----- OUTPUT GATE -----
@@ -170,13 +135,13 @@ if __name__ == "__main__":
     import pprint
 
     # DO NOT DELETE: The first ever successful call
-    # user_prompts = [
-    #     "Add 5 and 6",
-    # ]
-
     user_prompts = [
-        "Change 'sphynx' to upper case",
+        "Add 5 and 6",
     ]
+
+    # user_prompts = [
+    #     "Change 'sphynx' to upper case",
+    # ]
 
     for r in run_queue(user_prompts):
         print(f">> [{r['task']}] {r['result']}")

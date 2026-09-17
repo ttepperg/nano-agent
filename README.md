@@ -64,3 +64,9 @@ The goal is not to build a production-ready agent framework. It is to make the f
 Experimental / educational.
 
 Built as a learning project while exploring LLMs, tool use, memory, guardrails, scheduling, and agent architecture.
+
+## Acknowledgement
+
+`nano-agent` was inspired by **[A Tour of Agents](https://tinyagents.dev/learn)**, a tutorial by Arun Purushothaman that explores the core concepts behind AI agent frameworks by building an agent from scratch.
+
+*Created with Sphynx.* 🐈

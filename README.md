@@ -46,7 +46,7 @@ The project started with a mock LLM and was later connected to a real LLM, keepi
 
 ```text
 nano-agent/
-├── agent.py
+├── nano_agent.py
 ├── tools.py
 ├── tool_defs.py
 ├── guardrails.py

@@ -84,6 +84,11 @@ Then run the agent with:
 python nano_agent.py
 ```
 
+### Response validation
+
+Response validation is **optional but recommended**. The framework validates the HTTP response, JSON format, and expected Chat Completions response structure. This adds a defensive layer around the LLM client while keeping the core framework minimal.
+
+
 ## Acknowledgement
 
 `nano-agent` was inspired by **[A Tour of Agents](https://tinyagents.dev/learn)**, a tutorial by Arun Purushothaman that explores the core concepts behind AI agent frameworks by building an agent from scratch.

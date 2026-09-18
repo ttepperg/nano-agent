@@ -72,7 +72,13 @@ The LLM and server settings are defined in `config.py`. Adjust these settings to
 
 For the Gemini backend, set `GEMINI_API_KEY` to your API key.
 
-Then run:
+When using the mock backend, start the mock server with:
+
+```text
+python mock_server.py
+```
+
+Then run the agent with:
 
 ```text
 python nano_agent.py

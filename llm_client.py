@@ -45,6 +45,12 @@ def ask_llm(conversation, tool_defs):
         debug(f"Invalid 'choices' in LLM response: {response_json}")
         raise RuntimeError("LLM returned invalid choices")
 
+    # 5 - messages' structure validation
+    message = choices[0].get("message")
+    if not isinstance(message, dict):
+        debug(f"Invalid 'message' in LLM response: {response_json}")
+        raise RuntimeError("LLM returned invalid message")
+
     # Bytes to text
     # request() provides shortcut for: json.loads(await response.string())
     # This converst HTTP bytes -> text -> JSON -> Python object

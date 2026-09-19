@@ -129,19 +129,23 @@ def run_queue(initial_tasks, max_tasks=5):
     return results
 
 
+def main():
+    """ Runs thd main loop as an interactive session via the command line"""
+    while True:
+        task = input(">> ")
+
+        if task.lower() in {"exit", "quit"}:
+            break
+
+        results = run_queue([task])
+        print(results[-1]["result"])
+        # print(f">> [{r['task']}] {r['result']}")
+
+
 # ------ MAIN ------
-if __name__ == "__main__":
+if __name__ == "__main__": main()
 
-    import pprint
-
-    # DO NOT DELETE: The first ever successful call
-    user_prompts = [
-        "Add 5 and 6",
-    ]
-
+    # DO NOT DELETE: The first ever successful call to Gemini (17 SEP 2026)
     # user_prompts = [
-    #     "Change 'sphynx' to upper case",
+    #     "Add 5 and 6",
     # ]
-
-    for r in run_queue(user_prompts):
-        print(f">> [{r['task']}] {r['result']}")

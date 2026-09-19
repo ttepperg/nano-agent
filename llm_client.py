@@ -3,6 +3,7 @@ import requests
 from config import LLM_CONFIG
 from utils import debug
 
+
 def validate_llm_response(response):
         # Generic response validation
         # 1 - transport/API validation
@@ -36,6 +37,7 @@ def validate_llm_response(response):
             raise RuntimeError("LLM returned invalid message")
 
 
+
 def ask_llm(conversation, tool_defs):
     """Post the current conversation to the LLM and retrieve its answer."""
 
@@ -61,8 +63,8 @@ def ask_llm(conversation, tool_defs):
 
     # Bytes to text
     # request() provides shortcut for: json.loads(await response.string())
-    # This converst HTTP bytes -> text -> JSON -> Python object
+    # This converst HTTP bytes -> text -> JSON -> Python object (dict)
     response_json = response.json()
     debug("response_json\n", response_json)
-    # debug("response_json\n", response_json["usage"])
+    debug("response_json\n", response_json["usage"])
     return response_json["choices"][0]["message"]

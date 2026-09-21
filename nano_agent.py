@@ -164,10 +164,10 @@ def main():
         print("[nano-agent] << ", results[-1]["result"])
 
         print(
-            f"Usage:\n"
-            f"  Prompt tokens:     {state['usage']['prompt_tokens']}\n"
-            f"  Completion tokens: {state['usage']['completion_tokens']}\n"
-            f"  Total tokens:      {state['usage']['total_tokens']}"
+            f" Usage:\n"
+            f"   Prompt tokens:     {state['usage']['prompt_tokens']}\n"
+            f"   Completion tokens: {state['usage']['completion_tokens']}\n"
+            f"   Total tokens:      {state['usage']['total_tokens']}\n"
         )
 
 # ------ MAIN ------

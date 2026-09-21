@@ -78,11 +78,31 @@ When using the mock backend, start the mock server with:
 python mock_server.py
 ```
 
-Then run the agent with:
+Then start the agent with:
 
 ```text
 python nano_agent.py
 ```
+
+The agent runs interactively and accepts tasks at the `>>` prompt. Enter `exit` or `quit` to leave.
+
+### Command-line options
+
+Optional runtime parameters can be supplied when starting the agent:
+
+```text
+python nano_agent.py --max-tasks 10 --max-iter 5
+```
+
+`--max-tasks` sets the maximum number of queued tasks to process, while `--max-iter` sets the maximum number of LLM iterations allowed for each task.
+
+Run:
+
+```text
+python nano_agent.py --help
+```
+
+to see all available options.
 
 ### Response validation
 

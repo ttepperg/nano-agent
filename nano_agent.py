@@ -155,14 +155,12 @@ def main():
     print("="*100)
     while True:
         task = input("[user] >> ")
-
+        print("[nano-agent] ... processing", end="\r", flush=True)
         if task.lower() in {"exit", "quit"}:
             break
-
         results = \
             run_queue([task], max_tasks=args.max_tasks, max_iter=args.max_iter)
-        print("[nano-agent] << ", results[-1]["result"])
-
+        print(f"\033[K[nano-agent] << {results[-1]['result']}")
         print(
             f" Usage:\n"
             f"   Prompt tokens:     {state['usage']['prompt_tokens']}\n"

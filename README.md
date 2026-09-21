@@ -4,7 +4,11 @@
 
 `nano-agent` is a small, transparent implementation of an LLM-based agent. It provides the core machinery behind an agent without hiding it behind an agent SDK.
 
-![nano-agent interactive session](images/nano-agent-demo.png)
+<p align="center">
+  <img src="images/nano-agent-demo.png"
+       alt="nano-agent interactive session"
+       width="300">
+</p>
 
 ## What it does
 

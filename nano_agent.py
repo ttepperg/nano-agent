@@ -155,9 +155,12 @@ def main():
     print("="*100)
     while True:
         task = input("[user] >> ")
-        print("[nano-agent] ... processing", end="\r", flush=True)
+
         if task.lower() in {"exit", "quit"}:
             break
+
+        print("[nano-agent] ... processing", end="\r", flush=True)
+
         results = \
             run_queue([task], max_tasks=args.max_tasks, max_iters=args.max_iters)
         print(f"\033[K[nano-agent] << {results[-1]['result']}")
@@ -167,6 +170,7 @@ def main():
             f"   Completion tokens: {state['usage']['completion_tokens']}\n"
             f"   Total tokens:      {state['usage']['total_tokens']}\n"
         )
+
 
 # ------ MAIN ------
 if __name__ == "__main__": main()

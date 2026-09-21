@@ -77,5 +77,6 @@ def llm_api(request):
             llm_response = {"content": word}
 
     response["choices"][0]["message"] = {"role": "assistant", **llm_response}
+    response["usage"] = '12345 tokens'
 
     return response

@@ -127,8 +127,8 @@ def agent(task, max_iters = 5):
                 "content": str(result)
             })
 
-    return f"Max iteration reached: {max_iters}"
-
+    trace("agent_end", f"Maximum iterations reached: {max_iters}")
+    return f"Agent stopped after reaching the maximum of {max_iters} iterations."
 
 # ------ BFS SCHEDULER (Breadth-First Search) ------
 def run_queue(initial_tasks, max_tasks=5, max_iters=5):

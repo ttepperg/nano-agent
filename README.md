@@ -78,7 +78,7 @@ When using the mock backend, start the mock server with:
 python mock_server.py
 ```
 
-Then, in a different terminal, start the agent in with:
+Then, in a different terminal, start the agent with:
 
 ```text
 python nano_agent.py

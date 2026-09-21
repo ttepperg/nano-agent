@@ -11,9 +11,10 @@ def parse_args():
         required=False
     )
     parser.add_argument(
-        "--max-iter",
+        "--max-iters",
         type=int,
         default=5,
         help="Maximum number of LLM iterations per task",
+        required=False
     )
     return parser.parse_args()

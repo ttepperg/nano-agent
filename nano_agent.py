@@ -66,7 +66,7 @@ TOOL_REGISTRY = {
 }
 
 # ------ ORCHESTRATOR ------
-def agent(task, max_iter = 5):
+def agent(task, max_iters = 5):
     """ Orchestrator """
 
     # ----- INPUT GATE -----
@@ -87,7 +87,7 @@ def agent(task, max_iter = 5):
     turn_id = len(state["turns"])
     state["turns"].append({"id": turn_id+1, "iterations": 0})
 
-    for iter in range(max_iter):
+    for iter in range(max_iters):
         state["turns"][turn_id]["iterations"] = iter+1
         trace("llm_call", f"Turn: {turn_id}  Iterations: {iter+1}")
         result = ask_llm(conversation, TOOL_DEFS)
@@ -127,11 +127,11 @@ def agent(task, max_iter = 5):
                 "content": str(result)
             })
 
-    return f"Max iteration reached: {max_iter}"
+    return f"Max iteration reached: {max_iters}"
 
 
 # ------ BFS SCHEDULER (Breadth-First Search) ------
-def run_queue(initial_tasks, max_tasks=5, max_iter=5):
+def run_queue(initial_tasks, max_tasks=5, max_iters=5):
     task_queue.clear()
     task_queue.extend(initial_tasks)
     results = []
@@ -140,7 +140,7 @@ def run_queue(initial_tasks, max_tasks=5, max_iter=5):
         task = task_queue.pop(0)
         processed += 1
         trace("agent_start", f"[{processed}/{max_tasks}] {task}")
-        result = agent(task, max_iter=max_iter)
+        result = agent(task, max_iters=max_iters)
         results.append({"task": task, "result": result})
     if task_queue:
         trace("policy_block", f"BUDGET: {len(task_queue)} tasks remaining")
@@ -159,7 +159,7 @@ def main():
         if task.lower() in {"exit", "quit"}:
             break
         results = \
-            run_queue([task], max_tasks=args.max_tasks, max_iter=args.max_iter)
+            run_queue([task], max_tasks=args.max_tasks, max_iters=args.max_iters)
         print(f"\033[K[nano-agent] << {results[-1]['result']}")
         print(
             f" Usage:\n"

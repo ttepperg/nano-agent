@@ -28,6 +28,8 @@ from tool_defs import TOOL_DEFS
 from guardrails import INPUT_RULES, OUTPUT_RULES, check_gate
 from utils import trace
 from llm_client import ask_llm
+from cli import parse_args
+
 
 # SYSTEM PROMPT
 SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. schedule() to add next steps. Use them when needed. Be concise."
@@ -112,7 +114,7 @@ def agent(task, max_iter = 5):
 
 
 # ------ BFS SCHEDULER (Breadth-First Search) ------
-def run_queue(initial_tasks, max_tasks=5):
+def run_queue(initial_tasks, max_tasks=5, max_iter=5):
     task_queue.clear()
     task_queue.extend(initial_tasks)
     results = []
@@ -121,7 +123,7 @@ def run_queue(initial_tasks, max_tasks=5):
         task = task_queue.pop(0)
         processed += 1
         trace("agent_start", f"[{processed}/{max_tasks}] {task}")
-        result = agent(task)
+        result = agent(task, max_iter=max_iter)
         results.append({"task": task, "result": result})
         print("task", task, "result", result)
     if task_queue:
@@ -131,15 +133,18 @@ def run_queue(initial_tasks, max_tasks=5):
 
 def main():
     """ Runs thd main loop as an interactive session via the command line"""
+
+    args = parse_args()
+
     while True:
         task = input(">> ")
 
         if task.lower() in {"exit", "quit"}:
             break
 
-        results = run_queue([task])
+        results = \
+            run_queue([task], max_tasks=args.max_tasks, max_iter=args.max_iter)
         print(results[-1]["result"])
-        # print(f">> [{r['task']}] {r['result']}")
 
 
 # ------ MAIN ------

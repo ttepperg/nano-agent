@@ -142,7 +142,6 @@ def run_queue(initial_tasks, max_tasks=5, max_iter=5):
         trace("agent_start", f"[{processed}/{max_tasks}] {task}")
         result = agent(task, max_iter=max_iter)
         results.append({"task": task, "result": result})
-        print("task", task, "result", result)
     if task_queue:
         trace("policy_block", f"BUDGET: {len(task_queue)} tasks remaining")
     return results
@@ -153,15 +152,16 @@ def main():
 
     args = parse_args()
 
+    print("="*100)
     while True:
-        task = input(">> ")
+        task = input("[user] >> ")
 
         if task.lower() in {"exit", "quit"}:
             break
 
         results = \
             run_queue([task], max_tasks=args.max_tasks, max_iter=args.max_iter)
-        print(results[-1]["result"])
+        print("[nano-agent] << ", results[-1]["result"])
 
         print(
             f"Usage:\n"

@@ -84,7 +84,7 @@ Then, in a different terminal, start the agent with:
 python nano_agent.py
 ```
 
-The agent runs interactively and accepts tasks at the `>>` prompt. Enter `exit` or `quit` to leave.
+The agent runs interactively, accepting tasks at the `[user] >>` prompt and returning its responses at the `[nano-agent] <<` prompt. Enter `exit` or `quit` to leave.
 
 ### Command-line options
 

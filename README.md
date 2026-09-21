@@ -4,12 +4,6 @@
 
 `nano-agent` is a small, transparent implementation of an LLM-based agent. It provides the core machinery behind an agent without hiding it behind an agent SDK.
 
-<p align="center">
-  <img src="images/nano-agent-demo.png"
-       alt="nano-agent interactive session"
-       width="300">
-</p>
-
 ## What it does
 
 The agent can:
@@ -52,12 +46,16 @@ The project started with a mock LLM and was later connected to a real LLM, keepi
 
 ```text
 nano-agent/
-├── nano_agent.py
-├── tools.py
-├── tool_defs.py
+├── cli.py
+├── config.py
 ├── guardrails.py
-├── utils.py
-└── config.py
+├── llm_client.py
+├── mock_llm.py
+├── mock_server.py
+├── nano_agent.py
+├── tool_defs.py
+├── tools.py
+└── utils.py
 ```
 
 ## Why?
@@ -91,6 +89,12 @@ python nano_agent.py
 ```
 
 The agent runs interactively, accepting tasks at the `[user] >>` prompt and returning its responses at the `[nano-agent] <<` prompt. Enter `exit` or `quit` to leave.
+
+<p align="center">
+  <img src="images/nano-agent-demo.png"
+       alt="nano-agent interactive session"
+       width="300">
+</p>
 
 ### Command-line options
 

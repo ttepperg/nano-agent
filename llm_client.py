@@ -66,5 +66,10 @@ def ask_llm(conversation, tool_defs):
     # This converst HTTP bytes -> text -> JSON -> Python object (dict)
     response_json = response.json()
     debug("response_json\n", response_json)
-    debug("response_json\n", response_json["usage"])
-    return response_json["choices"][0]["message"]
+
+    message = response_json["choices"][0]["message"]
+    usage = response_json.get("usage")
+    return {
+        "message": message,
+        "usage": usage,
+    }

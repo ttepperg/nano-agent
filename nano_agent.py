@@ -46,7 +46,12 @@ conversation = [
 state = {
     "turns": [],
     "messages": conversation,
-    "memory": memory_dict
+    "memory": memory_dict,
+    "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
 }
 
 # TASKS QUEUE
@@ -85,7 +90,19 @@ def agent(task, max_iter = 5):
     for iter in range(max_iter):
         state["turns"][turn_id]["iterations"] = iter+1
         trace("llm_call", f"Turn: {turn_id}  Iterations: {iter+1}")
-        llm_response = ask_llm(conversation, TOOL_DEFS)
+        result = ask_llm(conversation, TOOL_DEFS)
+        llm_response = result["message"]
+        usage = result["usage"]
+        if usage:
+            state["usage"]["prompt_tokens"] += usage["prompt_tokens"]
+            state["usage"]["completion_tokens"] += usage["completion_tokens"]
+            state["usage"]["total_tokens"] += usage["total_tokens"]
+        trace(
+            "llm_usage",
+            f"Prompt: {usage['prompt_tokens']}  "
+            f"Completion: {usage['completion_tokens']}  "
+            f"Total: {usage['total_tokens']}"
+        )
         if not llm_response.get("tool_calls"): # not tasks left -> final answer
             final_answer = llm_response.get('content', '')
             # ----- OUTPUT GATE -----
@@ -146,6 +163,12 @@ def main():
             run_queue([task], max_tasks=args.max_tasks, max_iter=args.max_iter)
         print(results[-1]["result"])
 
+        print(
+            f"Usage:\n"
+            f"  Prompt tokens:     {state['usage']['prompt_tokens']}\n"
+            f"  Completion tokens: {state['usage']['completion_tokens']}\n"
+            f"  Total tokens:      {state['usage']['total_tokens']}"
+        )
 
 # ------ MAIN ------
 if __name__ == "__main__": main()

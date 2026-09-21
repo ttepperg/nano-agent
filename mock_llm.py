@@ -77,6 +77,11 @@ def llm_api(request):
             llm_response = {"content": word}
 
     response["choices"][0]["message"] = {"role": "assistant", **llm_response}
-    response["usage"] = '12345 tokens'
+    response["usage"] =  {
+            "prompt_tokens": 10,
+            "completion_tokens": 15,
+            "total_tokens": 30, # includes 'thinking' tokens
+        }
+
 
     return response

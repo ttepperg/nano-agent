@@ -100,6 +100,25 @@ The agent runs interactively, accepting tasks at the `[user] >>` prompt and retu
 
 The agent can be terminated by entering `exit` or `quit`.
 
+A single user request may involve multiple LLM/tool iterations. The agent executes these steps internally and returns one final response for the overall task.
+
+For example:
+
+```text
+user task
+   ↓
+LLM → tool
+   ↓
+tool result
+   ↓
+LLM → tool
+   ↓
+tool result
+   ↓
+LLM → final response
+```
+
+
 ### Command-line options
 
 Optional runtime parameters can be supplied when starting the agent:

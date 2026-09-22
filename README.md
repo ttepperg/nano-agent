@@ -105,10 +105,10 @@ The agent can be terminated by entering `exit` or `quit`.
 Optional runtime parameters can be supplied when starting the agent:
 
 ```text
-python nano_agent.py --max-tasks 10 --max-iter 5
+python nano_agent.py --max-iter 5
 ```
 
-`--max-tasks` sets the maximum number of queued tasks to process, while `--max-iter` sets the maximum number of LLM iterations allowed for each task.
+`--max-iter` sets the maximum number of LLM iterations allowed for each task.
 
 Run:
 

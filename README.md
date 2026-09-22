@@ -70,11 +70,13 @@ Built as a learning project while exploring LLMs, tool use, memory, guardrails, 
 
 ## Usage
 
-Select the LLM backend by setting the `LLM_BACKEND` environment variable to either `mock` or `gemini` (default: `mock`).
+Select the LLM backend by setting the `LLM_BACKEND` environment variable to one of `mock`, `gemini` or `openai` (default: `mock`).
 
 The LLM and server settings are defined in `config.py`. Adjust these settings to match your local setup or chosen LLM provider. API keys should be supplied via environment variables rather than stored in the repository.
 
 For the Gemini backend, set `GEMINI_API_KEY` to your API key.
+
+For the OpenAI backend, set `OPENAI_API_KEY` to your API key.
 
 When using the mock backend, start the mock server with:
 
@@ -82,19 +84,21 @@ When using the mock backend, start the mock server with:
 python mock_server.py
 ```
 
-Then, in a different terminal, start the agent with:
+Then start the agent with:
 
 ```text
 python nano_agent.py
 ```
 
-The agent runs interactively, accepting tasks at the `[user] >>` prompt and returning its responses at the `[nano-agent] <<` prompt. Enter `exit` or `quit` to leave.
+The agent runs interactively, accepting tasks at the `[user] >>` prompt and returning its responses at the `[nano-agent] <<` prompt.
 
 <p align="center">
   <img src="images/nano-agent-demo.png"
        alt="nano-agent interactive session"
-       width="300">
+       width="700">
 </p>
+
+The agent can be terminated by entering `exit` or `quit`.
 
 ### Command-line options
 
@@ -113,6 +117,32 @@ python nano_agent.py --help
 ```
 
 to see all available options.
+
+### Model API testing
+
+The `extras/model_api_test.py` script can be used to test the configured model APIs independently of the agent.
+
+Run it from the repository root with:
+
+```text
+python -m extras.model_api_test --model <model-name>
+```
+
+The available model names are taken from the backend definitions in `config.py`. For example:
+
+```text
+python -m extras.model_api_test --model mock-model
+python -m extras.model_api_test --model gemini-3.6-flash
+python -m extras.model_api_test --model gpt-5.6-luna
+```
+
+Use:
+
+```text
+python -m extras.model_api_test --help
+```
+
+to see the available model options.
 
 ### Response validation
 

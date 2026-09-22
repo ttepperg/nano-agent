@@ -26,7 +26,7 @@ import json
 import tools
 from tool_defs import TOOL_DEFS
 from guardrails import INPUT_RULES, OUTPUT_RULES, check_gate
-from utils import trace
+from utils import trace, save_conversation
 from llm_client import ask_llm
 from cli import parse_args
 
@@ -82,6 +82,7 @@ def agent(task, max_iters = 5):
     conversation[0] = system_message # replace
 
     conversation.append({"role": "user", "content": task})
+    save_conversation(conversation)
 
     # record state
     turn_id = len(state["turns"])
@@ -109,11 +110,13 @@ def agent(task, max_iters = 5):
             ok, reason = check_gate(final_answer, OUTPUT_RULES, 'OUTPUT')
             if not ok: return f"REDACTED: {reason}"
             conversation.append({"role": "assistant", "content": final_answer})
+            save_conversation(conversation)
             trace("agent_end",
                 f"Done in {state["turns"][turn_id]["iterations"]} iterations")
             return final_answer
         # add LLM message to conversation
         conversation.append(llm_response)
+        save_conversation(conversation)
         # loop over tool calls
         for tc in llm_response["tool_calls"]:
             fcn = tc["function"]
@@ -126,6 +129,7 @@ def agent(task, max_iters = 5):
                 "tool_call_id": tc["id"],
                 "content": str(result)
             })
+            save_conversation(conversation)
 
     trace("agent_end", f"Maximum iterations reached: {max_iters}")
     return f"Agent stopped after reaching the maximum of {max_iters} iterations."

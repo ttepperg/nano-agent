@@ -12,11 +12,9 @@ def trace(t, l):
         hms = time.strftime("%H:%M:%S")
         print(f'__TRACE__:{json.dumps({"id": id, "timestamp": hms, "type": t, "label": l})}')
 
-
 def debug(*args, **kwargs):
     if DEBUG_ON:
         print(*args, **kwargs)
-
 
 def extract_keyval(text):
     match = re.search(r"My (\w+) is (.+)", text, re.IGNORECASE)
@@ -24,3 +22,7 @@ def extract_keyval(text):
         key = match.group(1)
         value = match.group(2)
         return key, value
+
+def save_conversation(conversation, filename="./data/conversation.json"):
+    with open(filename, "w") as f:
+        json.dump(conversation, f, indent=2)

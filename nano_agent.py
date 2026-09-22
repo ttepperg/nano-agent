@@ -29,7 +29,7 @@ from guardrails import INPUT_RULES, OUTPUT_RULES, check_gate
 from utils import trace, save_conversation
 from llm_client import ask_llm
 from cli import parse_args
-
+from config import DEBUG_ON, TRACE_ON
 
 # SYSTEM PROMPT
 SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. Use them when needed. Be concise."
@@ -145,7 +145,8 @@ def main():
         if task.lower() in {"exit", "quit"}:
             break
 
-        print("[nano-agent] ... processing", end="\r", flush=True)
+        if not DEBUG_ON and not TRACE_ON:
+            print("[nano-agent] ... processing", end="\r", flush=True)
 
         result = agent(task, max_iters=args.max_iters)
 

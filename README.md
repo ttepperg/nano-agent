@@ -4,6 +4,8 @@
 
 `nano-agent` is a small, transparent implementation of an LLM-based agent. It provides the core machinery behind an agent without hiding it behind an agent SDK.
 
+> **Current milestone:** The minimal agent core has been established. It provides a small, SDK-free agent loop with multi-step tool use, pluggable LLM backends, guardrails, conversation persistence, and a command-line interface.
+
 ## What it does
 
 The agent can:

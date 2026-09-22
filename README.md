@@ -95,7 +95,7 @@ The agent runs interactively, accepting tasks at the `[user] >>` prompt and retu
 <p align="center">
   <img src="images/nano-agent-demo.png"
        alt="nano-agent interactive session"
-       width="700">
+       width="300">
 </p>
 
 The agent can be terminated by entering `exit` or `quit`.

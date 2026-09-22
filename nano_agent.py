@@ -148,7 +148,10 @@ def main():
 
         result = agent(task, max_iters=args.max_iters)
 
-        print(f"\033[K[nano-agent] << {result}")
+        # just cosmetics (optional)
+        display_result = ", ".join(line.strip() for line in result.splitlines())
+
+        print(f"\033[K[nano-agent] << {display_result}")
         print(
             f" Usage:\n"
             f"   Prompt tokens:     {state['usage']['prompt_tokens']}\n"

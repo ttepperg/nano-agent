@@ -32,7 +32,7 @@ from cli import parse_args
 
 
 # SYSTEM PROMPT
-SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. schedule() to add next steps. Use them when needed. Be concise."
+SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. Use them when needed. Be concise."
 
 # MEMORY
 memory_dict = {}
@@ -55,14 +55,13 @@ state = {
 }
 
 # TASKS QUEUE
-task_queue = []
+# task_queue = []
 
 # TOOL REGISTRY
 TOOL_REGISTRY = {
     "add": tools.add,
     "upper": tools.upper,
     "remember": tools.make_remember(memory_dict),
-    "schedule": tools.make_schedule(task_queue),
 }
 
 # ------ ORCHESTRATOR ------
@@ -134,22 +133,6 @@ def agent(task, max_iters = 5):
     trace("agent_end", f"Maximum iterations reached: {max_iters}")
     return f"Agent stopped after reaching the maximum of {max_iters} iterations."
 
-# ------ BFS SCHEDULER (Breadth-First Search) ------
-def run_queue(initial_tasks, max_tasks=5, max_iters=5):
-    task_queue.clear()
-    task_queue.extend(initial_tasks)
-    results = []
-    processed = 0
-    while task_queue and processed < max_tasks:
-        task = task_queue.pop(0)
-        processed += 1
-        trace("agent_start", f"[{processed}/{max_tasks}] {task}")
-        result = agent(task, max_iters=max_iters)
-        results.append({"task": task, "result": result})
-    if task_queue:
-        trace("policy_block", f"BUDGET: {len(task_queue)} tasks remaining")
-    return results
-
 
 def main():
     """ Runs thd main loop as an interactive session via the command line"""
@@ -158,6 +141,7 @@ def main():
 
     print("="*100)
     while True:
+
         task = input("[user] >> ")
 
         if task.lower() in {"exit", "quit"}:
@@ -165,9 +149,9 @@ def main():
 
         print("[nano-agent] ... processing", end="\r", flush=True)
 
-        results = \
-            run_queue([task], max_tasks=args.max_tasks, max_iters=args.max_iters)
-        print(f"\033[K[nano-agent] << {results[-1]['result']}")
+        result = agent(task, max_iters=args.max_iters)
+
+        print(f"\033[K[nano-agent] << {result}")
         print(
             f" Usage:\n"
             f"   Prompt tokens:     {state['usage']['prompt_tokens']}\n"

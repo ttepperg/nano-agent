@@ -47,23 +47,8 @@ REMEMBER_DEF = {
     }
 }
 
-SCHEDULE_DEF = {
-    "type": "function",
-    "function": {
-        "name": "schedule",
-        "description": "Schedule a follow-up task",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "task": {"type": "string"}
-            }
-        }
-    }
-}
-
 TOOL_DEFS = [
     ADD_DEF,
     UPPER_DEF,
     REMEMBER_DEF,
-    SCHEDULE_DEF
 ]

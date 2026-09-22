@@ -20,7 +20,7 @@ LLM_BACKENDS = {
     "gemini": {
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "api_key": os.environ.get("GEMINI_API_KEY"),
-        "model": "gemini-3.6-flash",
+        "model": "gemini-3.8-flash",
     },
     "openai": {
         "base_url": "https://api.openai.com/v1",

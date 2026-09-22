@@ -48,6 +48,8 @@ def ask_llm(conversation, tool_defs):
     }
     if "reasoning_effort" in LLM_CONFIG:
         payload["reasoning_effort"] = LLM_CONFIG["reasoning_effort"]
+    if "parallel_tool_calls" in LLM_CONFIG:
+        payload["parallel_tool_calls"] = LLM_CONFIG["parallel_tool_calls"]
 
     response = requests.post(
         # Where to post

@@ -27,6 +27,7 @@ LLM_BACKENDS = {
         "api_key": os.environ["OPENAI_API_KEY"],
         "model": "gpt-5.6-luna",
         "reasoning_effort": "none",
+        "parallel_tool_calls": False,
     },
 }
 

@@ -131,9 +131,9 @@ python -m extras.model_api_test --model <model-name>
 The available model names are taken from the backend definitions in `config.py`. For example:
 
 ```text
-python -m extras.model_api_test --model mock-model
-python -m extras.model_api_test --model gemini-3.6-flash
-python -m extras.model_api_test --model gpt-5.6-luna
+python -m extras.model_api_test --model mock
+python -m extras.model_api_test --model gemini
+python -m extras.model_api_test --model openai
 ```
 
 Use:

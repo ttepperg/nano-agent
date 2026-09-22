@@ -20,10 +20,11 @@ response = {
 }
 
 # Mock responses
-random_answer = \
-    ["Paris",
+random_answer = [
+    "Paris",
     "Yes", "No", "Maybe",
-    "password", "secret"]
+    "password", "secret",
+]
 
 # Mock memories
 random_memory = \

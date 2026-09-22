@@ -33,6 +33,7 @@ from cli import parse_args
 
 # SYSTEM PROMPT
 SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. Use them when needed. Be concise."
+SYSTEM += "For final answers, respond on a single line. When a request produces multiple independent results, separate them with commas."
 
 # MEMORY
 memory_dict = {}
@@ -149,7 +150,7 @@ def main():
         result = agent(task, max_iters=args.max_iters)
 
         # just cosmetics (optional)
-        display_result = ", ".join(line.strip() for line in result.splitlines())
+        display_result = " ".join(result.splitlines())
 
         print(f"\033[K[nano-agent] << {display_result}")
         print(

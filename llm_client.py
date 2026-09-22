@@ -41,6 +41,14 @@ def validate_llm_response(response):
 def ask_llm(conversation, tool_defs):
     """Post the current conversation to the LLM and retrieve its answer."""
 
+    payload = {
+        "model": LLM_CONFIG["model"],
+        "messages": conversation,
+        "tools": tool_defs,
+    }
+    if "reasoning_effort" in LLM_CONFIG:
+        payload["reasoning_effort"] = LLM_CONFIG["reasoning_effort"]
+
     response = requests.post(
         # Where to post
         f"{LLM_CONFIG['base_url']}/chat/completions",
@@ -50,11 +58,7 @@ def ask_llm(conversation, tool_defs):
             "Content-Type": "application/json"
         },
         # What to post (data)
-        json={
-            "model": LLM_CONFIG['model'],
-            "messages": conversation,
-            "tools": tool_defs,
-        }
+        json=payload
     ) # request.post
 
     # ----- RESPONSE VALIDATION -----

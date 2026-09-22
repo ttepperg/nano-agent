@@ -54,9 +54,6 @@ state = {
     }
 }
 
-# TASKS QUEUE
-# task_queue = []
-
 # TOOL REGISTRY
 TOOL_REGISTRY = {
     "add": tools.add,

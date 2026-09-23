@@ -118,6 +118,7 @@ tool result
 LLM → final response
 ```
 
+> Input guardrails reject prohibited requests before they are sent to the LLM.
 
 ### Command-line options
 

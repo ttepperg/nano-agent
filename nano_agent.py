@@ -118,9 +118,23 @@ def agent(task, max_iters = 5):
         for tc in llm_response["tool_calls"]:
             fcn = tc["function"]
             name = fcn["name"]
-            args = json.loads(fcn["arguments"]) # str -> dict
 
-            # result = TOOL_REGISTRY[name](**args)
+            # Handle malformed tool arguments
+            try:
+                args = json.loads(fcn["arguments"])  # str -> dict
+            except json.JSONDecodeError as exc:
+                trace("tool_error", f"{name}({fcn['arguments']}) -> {exc}")
+                result = f"Tool error: malformed arguments: {exc}"
+                trace("tool_result", f"{name}({fcn['arguments']}) -> {result}")
+                conversation.append({
+                    "role": "tool",
+                    "tool_call_id": tc["id"],
+                    "content": str(result)
+                })
+                save_conversation(conversation)
+                continue
+
+            # Handle invalid tools
             try:
                 result = TOOL_REGISTRY[name](**args)
             except Exception as exc:

@@ -14,7 +14,6 @@ The agent can:
 * call Python tools using function calling
 * maintain conversation state and long-term memory
 * apply input and output guardrails
-* schedule follow-up tasks
 * trace its execution
 * retry or diagnose API failures
 
@@ -38,7 +37,6 @@ Agent
   │             ▼
   │           Tool
   │
-  ├── Scheduler
   └── Output guardrails
 ```
 
@@ -68,7 +66,7 @@ The goal is not to build a production-ready agent framework. It is to make the f
 
 Experimental / educational.
 
-Built as a learning project while exploring LLMs, tool use, memory, guardrails, scheduling, and agent architecture.
+Built as a learning project while exploring LLMs, tool use, memory, guardrails, and agent architecture.
 
 ## Usage
 

@@ -119,7 +119,14 @@ def agent(task, max_iters = 5):
             fcn = tc["function"]
             name = fcn["name"]
             args = json.loads(fcn["arguments"]) # str -> dict
-            result = TOOL_REGISTRY[name](**args)
+
+            # result = TOOL_REGISTRY[name](**args)
+            try:
+                result = TOOL_REGISTRY[name](**args)
+            except Exception as exc:
+                trace("tool_error", f"{name}({args}) -> {exc}")
+                result = f"Tool error: {exc}"
+
             trace("tool_result", f"{name}({args}) -> {result}")
             conversation.append({
                 "role": "tool",

@@ -6,6 +6,16 @@
 
 > **Current milestone:** The minimal agent core has been established. It provides a small, SDK-free agent loop with multi-step tool use, pluggable LLM backends, guardrails, conversation persistence, and a command-line interface.
 
+## Why?
+
+The goal is not to build a production-ready agent framework. It is to make the fundamental mechanisms of agentic systems small enough to understand, inspect, and modify.
+
+## Status
+
+Experimental / educational.
+
+Built as a learning project while exploring LLMs, tool use, memory, guardrails, and agent architecture.
+
 ## What it does
 
 The agent can:
@@ -40,7 +50,8 @@ Agent
   └── Output guardrails
 ```
 
-The project started with a mock LLM and was later connected to a real LLM, keeping the agent architecture unchanged.
+> **Persistence:** Conversation history is persisted to conversation.json for inspection and audit. Agent memory is currently held in process-local state and is not restored across sessions.
+
 
 ## Project structure
 
@@ -57,16 +68,6 @@ nano-agent/
 ├── tools.py
 └── utils.py
 ```
-
-## Why?
-
-The goal is not to build a production-ready agent framework. It is to make the fundamental mechanisms of agentic systems small enough to understand, inspect, and modify.
-
-## Status
-
-Experimental / educational.
-
-Built as a learning project while exploring LLMs, tool use, memory, guardrails, and agent architecture.
 
 ## Usage
 

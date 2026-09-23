@@ -52,25 +52,29 @@ def llm_api(request):
             user_msg = roles["content"]
     for umsg in user_msg.split('then'): # emulates multi-task request
         if "add" in umsg.lower():
+            args = {"a": 5, "b": 1}
             select_tool = \
-                set_tools_openai_api(request,0,{"a": 5, "b": 1},'1234')
+                set_tools_openai_api(request,0, args,'1234')
             select_tools.append(select_tool)
             llm_response = {"tool_calls": select_tools}
         elif "upper" in umsg.lower():
+            args = {"text": "abcdef"}
             select_tool = \
-                set_tools_openai_api(request,1,{"text": "abcdef"},'5678')
+                set_tools_openai_api(request,1,args,'5678')
             select_tools.append(select_tool)
             llm_response = {"tool_calls": select_tools}
         elif any(s in umsg.lower() for s in ['age', 'name', 'birthplace']):
             key, val = extract_keyval(umsg)
+            args = {"key": key, "value": val}
             select_tool = \
-                set_tools_openai_api(request, 2, {"key": key, "value": val}, '8910')
+                set_tools_openai_api(request, 2, args, '8910')
             select_tools.append(select_tool)
             llm_response = {"tool_calls": select_tools}
         elif 'do ' in umsg.lower():
             task = random.choice(task_choices)
+            args =  {"task": task}
             select_tool = \
-                set_tools_openai_api(request, 3, {"task": task}, '1112')
+                set_tools_openai_api(request, 3, args, '1112')
             select_tools.append(select_tool)
             llm_response = {"tool_calls": select_tools}
         else:

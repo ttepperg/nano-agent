@@ -22,10 +22,10 @@ The agent can:
 
 * interact with an LLM through an OpenAI-compatible API
 * call Python tools using function calling
-* maintain conversation state and long-term memory
+* maintain conversation state and memory during a session
 * apply input and output guardrails
 * trace its execution
-* retry or diagnose API failures
+* detect and diagnose API failures
 
 ## Architecture
 
@@ -41,11 +41,13 @@ Agent
   │      ▼
   │     LLM
   │      │
-  │      ├── final response
-  │      └── tool call
-  │             │
-  │             ▼
-  │           Tool
+  │      ├── final response ─┐
+  │      └── tool call       │
+  │             │            │
+  │             ▼            │
+  │           Tool           │
+  │             │            │
+  │             └── result ──┘
   │
   └── Output guardrails
 ```
@@ -60,6 +62,7 @@ nano-agent/
 ├── cli.py
 ├── config.py
 ├── guardrails.py
+├── images/
 ├── llm_client.py
 ├── mock_llm.py
 ├── mock_server.py

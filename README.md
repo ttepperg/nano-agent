@@ -129,6 +129,8 @@ python nano_agent.py --max-iter 5
 
 `--max-iter` sets the maximum number of LLM iterations allowed for each task.
 
+If the iteration limit is reached before a final response is produced, the agent stops and reports that it has reached the maximum number of iterations.
+
 Run:
 
 ```text

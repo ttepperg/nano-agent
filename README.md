@@ -174,6 +174,19 @@ to see the available model options.
 
 Response validation is **optional but recommended**. The framework validates the HTTP response, JSON format, and expected Chat Completions response structure. This adds a defensive layer around the LLM client while keeping the core framework minimal.
 
+## Browser UI
+
+With the FastAPI server running, open:
+
+http://127.0.0.1:8000/
+
+The page provides a minimal interface for submitting a task to nano-agent.
+
+For the real LLM backend, make sure the FastAPI process itself inherits:
+
+LLM_BACKEND=gpt
+OPENAI_API_KEY=...
+
 
 ## Acknowledgement
 

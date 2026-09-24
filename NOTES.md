@@ -301,6 +301,51 @@ Mac :9000  →  container :8000
 
 The application still listens on port 8000 inside the container; only the externally exposed host port changes.
 
+## 7. Environment variables
+
+Environment variables are inherited by processes.
+
+```bash
+export LLM_BACKEND=gpt
+```
+
+This affects:
+
+```text
+this shell
+    ↓
+processes launched from this shell
+```
+
+It does **not** affect other already-running shells or processes:
+
+```text
+Terminal A
+    export LLM_BACKEND=gpt
+        ↓
+    Uvicorn
+        ↓
+    nano-agent
+        ↓
+    sees LLM_BACKEND=gpt ✓
+
+
+Terminal B
+    ./post_request.sh
+        ↓
+    does NOT change Uvicorn's environment
+```
+
+> **⚠️ IMPORTANT:** The process that needs an environment variable must inherit it.
+
+For example:
+
+```bash
+LLM_BACKEND=gpt python -m uvicorn server_ui:app --reload
+```
+
+sets `LLM_BACKEND` specifically for the Uvicorn process.
+
 ### Image vs. container
 
 A useful analogy is:

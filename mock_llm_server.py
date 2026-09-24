@@ -67,6 +67,6 @@ class LLMHandler(BaseHTTPRequestHandler):
 
 
 # Start the server
-server = HTTPServer(("localhost", 8000), LLMHandler)
-print("Mock LLM listening on http://localhost:8000")
+server = HTTPServer(("localhost", config.MOCK_PORT), LLMHandler)
+print(f"Mock LLM listening on http://localhost:{config.MOCK_PORT}")
 server.serve_forever() # keep running...

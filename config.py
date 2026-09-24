@@ -11,9 +11,11 @@ TRACE_ON = True
 # Select via environmental variable (fallback: 'mock')
 # export LLM_BACKEND='mock' | 'gemini'
 
+MOCK_PORT = 8001
+
 LLM_BACKENDS = {
     "mock": {
-        "base_url": "http://localhost:8000",
+        "base_url": f"http://localhost:{MOCK_PORT}",
         "api_key": "fake-key",
         "model": "mock-model",
     },

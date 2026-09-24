@@ -74,7 +74,7 @@ nano-agent/
 
 ## Usage
 
-Select the LLM backend by setting the `LLM_BACKEND` environment variable to one of `mock`, `gemini` or `openai` (default: `mock`).
+Select the LLM backend by setting the `LLM_BACKEND` environment variable to one of `mock`, `gemini` or `gpt` (default: `mock`).
 
 The LLM and server settings are defined in `config.py`. Adjust these settings to match your local setup or chosen LLM provider. API keys should be supplied via environment variables rather than stored in the repository.
 
@@ -159,7 +159,7 @@ The available model names are taken from the backend definitions in `config.py`.
 ```text
 python -m extras.model_api_test --model mock
 python -m extras.model_api_test --model gemini
-python -m extras.model_api_test --model openai
+python -m extras.model_api_test --model gpt
 ```
 
 Use:

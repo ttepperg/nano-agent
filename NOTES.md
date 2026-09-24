@@ -167,7 +167,7 @@ Example:
 {"response":"5"}
 ```
 
-## Mental model
+### Mental model
 
 Docker is **not** the HTTP interface.
 
@@ -190,7 +190,7 @@ nano-agent
 
 On macOS, Docker Desktop runs Linux containers inside its Linux environment.
 
-## Development vs. containerised setup
+### Development vs. containerised setup
 
 Development with the mock LLM:
 
@@ -301,7 +301,7 @@ Mac :9000  →  container :8000
 
 The application still listens on port 8000 inside the container; only the externally exposed host port changes.
 
-## 8. Environment variables
+### Environment variables
 
 Environment variables are inherited by processes.
 

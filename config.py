@@ -22,7 +22,7 @@ LLM_BACKENDS = {
         "api_key": os.environ.get("GEMINI_API_KEY"),
         "model": "gemini-3.6-flash",
     },
-    "openai": {
+    "gpt": {
         "base_url": "https://api.openai.com/v1",
         "api_key": os.environ["OPENAI_API_KEY"],
         "model": "gpt-5.6-luna",

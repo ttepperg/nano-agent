@@ -220,7 +220,7 @@ GPT API
 
 The container is started once and remains available to receive HTTP requests; the HTTP request does **not** start the container.
 
-## 6. Docker lifecycle
+## 7. Docker lifecycle
 
 A useful mental model:
 
@@ -301,7 +301,7 @@ Mac :9000  →  container :8000
 
 The application still listens on port 8000 inside the container; only the externally exposed host port changes.
 
-## 7. Environment variables
+## 8. Environment variables
 
 Environment variables are inherited by processes.
 

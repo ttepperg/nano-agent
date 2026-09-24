@@ -4,4 +4,5 @@
 
 curl -X POST http://127.0.0.1:8000/run \
      -H "Content-Type: application/json" \
-     -d '{"task":"add 2 and 3"}'
+     -d '{"task":"add 2 and 3"}' \
+     -w '\n'

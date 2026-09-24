@@ -219,3 +219,104 @@ GPT API
 ```
 
 The container is started once and remains available to receive HTTP requests; the HTTP request does **not** start the container.
+
+## 6. Docker lifecycle
+
+A useful mental model:
+
+```text
+IMAGE: nano_agent
+       │
+       │ docker run
+       ▼
+CONTAINER: nano-agent-test
+       │
+       └── Uvicorn :8000
+            └── FastAPI
+                 └── nano-agent
+```
+
+The difference between `run`, `stop`, and `start`:
+
+```text
+docker run    → create a new container from an image + start it
+docker stop   → stop the container
+docker start  → start an existing stopped container
+```
+
+In our setup, **Uvicorn runs inside the container**, not on the Mac.
+
+```text
+Mac / host
+┌───────────────────────────────────────┐
+│                                       │
+│   host :8000                          │
+│       │                               │
+└───────●───────────────────────────────┘
+        │
+        │ port mapping
+        │
+┌───────●──────────────────────────────────────┐
+│ Docker Desktop                               │
+│                                              │
+│   Container: nano-agent-test                 │
+│   ┌────────────────────────────────────────┐ │
+│   │ Uvicorn :8000                          │ │
+│   │   ↓                                    │ │
+│   │ FastAPI                                │ │
+│   │   ↓                                    │ │
+│   │ nano-agent                             │ │
+│   └────────────────────────────────────────┘ │
+│                                              │
+└──────────────────────────────────────────────┘
+```
+
+The `-p 8000:8000` option creates a **port mapping** — effectively a plug through the Docker wall:
+
+```text
+Mac :8000
+    ↕
+Docker port mapping
+    ↕
+container :8000
+    ↕
+Uvicorn
+    ↕
+FastAPI
+    ↕
+nano-agent
+```
+
+For example:
+
+```bash
+docker run -p 9000:8000 ...
+```
+
+would map:
+
+```text
+Mac :9000  →  container :8000
+```
+
+The application still listens on port 8000 inside the container; only the externally exposed host port changes.
+
+### Image vs. container
+
+A useful analogy is:
+
+```text
+Docker image  → executable / blueprint
+Docker container → running (or stopped) instance of that image
+```
+
+An image can therefore have multiple containers:
+
+```text
+nano_agent image
+   ├── container A
+   ├── container B
+   └── container C
+```
+
+The image contains the packaged application and runtime environment; the container is the isolated instance in which the application actually runs.

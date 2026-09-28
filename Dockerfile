@@ -15,6 +15,10 @@ COPY . .
 RUN groupadd --gid 10001 appuser \
     && useradd --uid 10001 --gid appuser --create-home appuser
 
+# Give the application user access to its writable data directory
+RUN mkdir -p /app/data \
+    && chown -R appuser:appuser /app/data
+
 # Run the application as the unprivileged user
 USER appuser
 

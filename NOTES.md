@@ -232,9 +232,18 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid appuser --create-home appuser
+
+RUN mkdir -p /app/data \
+    && chown -R appuser:appuser /app/data
+
+USER appuser
 
 EXPOSE 8000
 
@@ -277,6 +286,42 @@ COPY . .
 Copies the rest of the application into the image.
 
 ```text
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid appuser --create-home appuser
+```
+
+Runs commands **while building the image** to create an ordinary, unprivileged Linux user called `appuser`.
+
+The `groupadd` command creates a group named `appuser` with GID `10001`.
+
+The `useradd` command creates the user `appuser` with UID `10001`, makes `appuser` a member of the `appuser` group, and creates its home directory at `/home/appuser`.
+
+These commands can run without a password because Docker executes the build steps as `root` by default.
+
+```text
+RUN mkdir -p /app/data \
+    && chown -R appuser:appuser /app/data
+```
+
+Ensures that the application's writable data directory exists and gives ownership of it to `appuser`.
+
+`mkdir -p` creates `/app/data` if it does not already exist. If the directory already exists, it does not replace or overwrite it.
+
+`chown -R appuser:appuser` changes the owner and group of `/app/data` and everything inside it to `appuser`.
+
+This happens **inside the Docker image**; it does not modify the corresponding `data/` directory on the host.
+
+The result is that application code can remain owned by `root`, while the specific directory that the application needs to modify is writable by `appuser`.
+
+```text
+USER appuser
+```
+
+Sets `appuser` as the user for subsequent instructions and, importantly, as the default user when a container is started from the image.
+
+Thus, Uvicorn, FastAPI, and `nano-agent` run as `appuser` rather than `root`.
+
+```text
 EXPOSE 8000
 ```
 
@@ -295,6 +340,34 @@ CMD [...]
 Defines the **default command executed when a container is started from the image**.
 
 In our case, this launches Uvicorn, which loads `server_ui:app` and listens on port `8000`.
+
+### 5.3 Build time vs. container runtime
+
+A useful distinction is:
+
+```text
+docker build
+    ↓
+Dockerfile instructions
+    ↓
+IMAGE
+```
+
+Some instructions act during image construction, such as `FROM`, `COPY`, and `RUN`.
+
+Then, later:
+
+```text
+docker run
+    ↓
+CONTAINER
+    ↓
+USER appuser
+    ↓
+CMD starts Uvicorn
+```
+
+`USER` therefore affects the identity under which the application runs, while `RUN groupadd ...`, `RUN useradd ...`, and `RUN chown ...` have already prepared the filesystem and users inside the image during the build.
 
 
 ### Build time vs. container runtime
@@ -382,6 +455,94 @@ The important point is:
 The container is started first and then remains available to receive HTTP requests.
 
 ---
+
+### Inspecting a running container
+
+A useful way to inspect a running container is:
+
+```bash
+docker exec -it nano-agent-test /bin/sh
+```
+
+This starts an interactive shell **inside the existing running container**.
+
+The `-i` flag keeps the session interactive, while `-t` allocates a terminal (TTY). The `/bin/sh` argument specifies the shell process to start.
+
+For example:
+
+```bash
+whoami
+id
+pwd
+ls -la /app
+ls -ld /home/appuser
+```
+
+These commands inspect the container's user, filesystem, permissions, and application files.
+
+`docker exec` starts an **additional process** inside the container; it does not replace or attach to the application's main process.
+
+For example, while Uvicorn is running:
+
+```text
+container
+├── Uvicorn
+│    └── FastAPI
+│         └── nano-agent
+│
+└── /bin/sh     ← shell started with docker exec
+```
+
+`exit` leaves the shell, but the container and its main application process continue running.
+
+The container's application files may be owned by `root` while the application itself runs as the unprivileged `appuser`. With permissions such as:
+
+```text
+-rw-r--r-- 1 root root ... server_ui.py
+```
+
+`appuser` can read the file but cannot modify it.
+
+This is consistent with the least-privilege principle: the application does not need to run as `root` merely because `root` owns the application files.
+
+### Writable application data
+
+Running the application as a non-root user can expose directories that the application needs to write to.
+
+In our case, `nano-agent` stores conversation state in:
+
+```text
+/app/data/conversation.json
+```
+
+The application files copied by:
+
+```dockerfile
+COPY . .
+```
+
+are initially owned by `root`. Rather than making the whole application tree writable, we give `appuser` ownership of only the directory that needs to be modified:
+
+```dockerfile
+RUN mkdir -p /app/data \
+    && chown -R appuser:appuser /app/data
+```
+
+`mkdir -p` ensures that the directory exists without replacing an existing directory or its contents. `chown -R` changes the ownership of the directory and everything inside it **withn the image/container**; it does **not** change the file contents.
+
+This results in a useful separation:
+
+```text
+/app
+├── application code      root:root
+│                         └── appuser can read
+│
+└── data/                 appuser:appuser
+                          └── appuser can read/write
+```
+
+This is an example of the **least-privilege principle**: give the application write access only where it actually needs it.
+
 
 ## 8. Where does Uvicorn run?
 

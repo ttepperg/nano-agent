@@ -1,6 +1,6 @@
 # Minimal production agent — notes
 
-The goal is to expose the existing `nano-agent` core as a small HTTP service, run it in a Docker container, and eventually provide a simple browser interface.
+The goal is to expose the existing `nano-agent` core as a small HTTP service, run it in a Docker container, and provide a simple browser interface.
 
 ## 1. Overall architecture
 
@@ -48,6 +48,10 @@ GPT API
 
 ## 2. HTTP interface
 
+The HTTP interface is implemented separately from the core agent code.
+
+### 2.1 API-only interface: `server.py`
+
 Create `server.py` **outside the core agent code**:
 
 ```python
@@ -74,6 +78,46 @@ Locally, the service can be started with:
 python -m uvicorn server:app --reload
 ```
 
+This starts Uvicorn, which runs the FastAPI application and listens for HTTP requests.
+
+`/run` is the HTTP endpoint handled by `run_agent()`.
+
+### 2.2 Browser-enabled interface: `server_ui.py`
+
+`server_ui.py` provides the same `/run` API while adding a simple browser interface.
+
+It defines a homepage at `/`:
+
+```python
+@app.get("/", response_class=HTMLResponse)
+def homepage():
+    ...
+```
+
+The homepage contains:
+
+* a text input;
+* a **Run** button;
+* an area for displaying the result.
+
+The JavaScript in the page reads the user's input and sends it to the existing `/run` endpoint.
+
+Locally, the browser-enabled service can be started with:
+
+```bash
+python -m uvicorn server_ui:app --reload
+```
+
+The two modules therefore provide two ways of running essentially the same service:
+
+```text
+server.py
+    → HTTP API only
+
+server_ui.py
+    → HTTP API + browser UI
+```
+
 ### FastAPI and Uvicorn
 
 A useful mental model is:
@@ -95,8 +139,8 @@ nano-agent
 So, loosely:
 
 ```text
-Uvicorn = courier
-FastAPI = bilingual interpreter
+Uvicorn = web server
+FastAPI = HTTP ↔ Python interface
 nano-agent = the part actually doing the work
 ```
 
@@ -136,6 +180,14 @@ The response is HTTP JSON:
 ```
 
 The `-w '\n'` adds a newline after the response so that the shell prompt does not appear on the same line.
+
+FastAPI also provides an interactive API interface at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+This can be used to test `POST /run` without writing a separate client.
 
 ---
 
@@ -187,28 +239,7 @@ Create a file named exactly:
 Dockerfile
 ```
 
-with no extension:
-
-```dockerfile
-# Base Python environment
-FROM python:3.12-slim
-
-# Working directory inside the container
-WORKDIR /app
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the application
-COPY . .
-
-# Document the port used by the application
-EXPOSE 8000
-
-# Start FastAPI automatically when the container starts
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+with no extension.
 
 Build the Docker image (Docker Desktop must be running):
 
@@ -217,8 +248,6 @@ docker build -t nano-agent .
 ```
 
 This creates an **image** containing the application and its runtime environment.
-
----
 
 ### 5.1 The Dockerfile
 
@@ -283,7 +312,7 @@ Runs a command **while building the image**, installing the Python dependencies.
 COPY . .
 ```
 
-Copies the rest of the application into the image.
+Copies the application files from the build context into the image. Files excluded by `.dockerignore` are not included.
 
 ```text
 RUN groupadd --gid 10001 appuser \
@@ -358,7 +387,7 @@ Some instructions act during image construction, such as `FROM`, `COPY`, and `RU
 Then, later:
 
 ```text
-docker run
+docker run / docker start
     ↓
 CONTAINER
     ↓
@@ -369,33 +398,7 @@ CMD starts Uvicorn
 
 `USER` therefore affects the identity under which the application runs, while `RUN groupadd ...`, `RUN useradd ...`, and `RUN chown ...` have already prepared the filesystem and users inside the image during the build.
 
-
-### Build time vs. container runtime
-
-A useful distinction is:
-
-```text
-docker build
-    ↓
-Dockerfile instructions
-    ↓
-IMAGE
-```
-
-and later:
-
-```text
-docker run / docker start
-    ↓
-CONTAINER
-    ↓
-CMD starts Uvicorn
-```
-
-Some Dockerfile instructions therefore act **during image construction** (`FROM`, `COPY`, `RUN`), while others describe **how the resulting container should run** (`CMD`, `HEALTHCHECK`).
-
-`EXPOSE` is mainly documentation/metadata: the actual host-to-container port mapping is established with `docker run -p ...`.
-
+---
 
 ## 6. Image vs. container
 
@@ -409,7 +412,7 @@ Docker container  → instance of that image
 An image can therefore have multiple containers:
 
 ```text
-nano_agent image
+nano-agent image
    ├── container A
    ├── container B
    └── container C
@@ -437,24 +440,22 @@ A container is more than just a process, however: it also has its own filesystem
 Run the image with:
 
 ```bash
-docker run --rm \
+docker run --name nano-agent-test \
     -p 8000:8000 \
     -e LLM_BACKEND=gpt \
     -e OPENAI_API_KEY="$OPENAI_API_KEY" \
-    nano_agent
+    nano-agent
 ```
 
 The container starts Uvicorn automatically via the `CMD` in the `Dockerfile`.
 
-No separate `server.py` or Uvicorn process needs to be launched on the host.
+No separate `server_ui.py` or Uvicorn process needs to be launched on the host.
 
 The important point is:
 
 > **The container starts the application; the HTTP request does not start the container.**
 
 The container is started first and then remains available to receive HTTP requests.
-
----
 
 ### Inspecting a running container
 
@@ -528,7 +529,7 @@ RUN mkdir -p /app/data \
     && chown -R appuser:appuser /app/data
 ```
 
-`mkdir -p` ensures that the directory exists without replacing an existing directory or its contents. `chown -R` changes the ownership of the directory and everything inside it **withn the image/container**; it does **not** change the file contents.
+`mkdir -p` ensures that the directory exists without replacing an existing directory or its contents. `chown -R` changes the ownership of the directory and everything inside it **within the image/container**; it does **not** change the file contents.
 
 This results in a useful separation:
 
@@ -543,6 +544,7 @@ This results in a useful separation:
 
 This is an example of the **least-privilege principle**: give the application write access only where it actually needs it.
 
+---
 
 ## 8. Where does Uvicorn run?
 
@@ -575,7 +577,7 @@ Mac / host
 The `CMD` in the `Dockerfile`:
 
 ```dockerfile
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "server_ui:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 means:
@@ -604,31 +606,6 @@ FastAPI
 nano-agent
 ```
 
-More explicitly:
-
-```text
-Mac / host
-┌───────────────────────────┐
-│                           │
-│       :8000               │
-│          │                │
-└──────────●────────────────┘
-           │
-           │ port mapping
-           │
-┌──────────●──────────────────────┐
-│ Docker container                │
-│                                 │
-│ container :8000                 │
-│        ↓                        │
-│      Uvicorn                    │
-│        ↓                        │
-│      FastAPI                    │
-│        ↓                        │
-│     nano-agent                  │
-└─────────────────────────────────┘
-```
-
 For example:
 
 ```bash
@@ -643,6 +620,76 @@ Mac :9000  →  container :8000
 
 The application still listens on port `8000` inside the container; only the externally exposed host port changes.
 
+### Ports and IP addresses
+
+A simplified mental model is:
+
+```text
+IP address = which machine/network endpoint?
+Port       = which numbered network endpoint?
+```
+
+A port is not itself a service. A service is a program that listens on a port.
+
+For example:
+
+```text
+127.0.0.1:8000
+│             │
+│             └── port
+└──────────────── IP address
+```
+
+The IP address and port together identify the network endpoint to which a client connects.
+
+A machine can have multiple network interfaces and addresses, and the same port number may be used on different addresses.
+
+### Loopback
+
+`127.0.0.1` is the standard IPv4 **loopback** address. It means:
+
+> “this machine itself.”
+
+Traffic sent to `127.0.0.1` is sent back into the same machine rather than out onto the network.
+
+In Docker, the container has its own network namespace, so its `127.0.0.1` refers to the **container itself**, not the Mac.
+
+This is why the health check can use:
+
+```text
+127.0.0.1:8000
+```
+
+from inside the container.
+
+### `0.0.0.0`
+
+When Uvicorn is started with:
+
+```text
+--host 0.0.0.0
+```
+
+it listens on port `8000` on all available IPv4 network interfaces inside the container.
+
+This allows Docker's port mapping to deliver traffic to Uvicorn.
+
+The browser, however, connects to the host:
+
+```text
+http://127.0.0.1:8000/
+```
+
+The two addresses therefore refer to different network contexts:
+
+```text
+host:
+127.0.0.1 → the Mac itself
+
+container:
+127.0.0.1 → the container itself
+```
+
 ---
 
 ## 10. Docker lifecycle
@@ -650,9 +697,9 @@ The application still listens on port `8000` inside the container; only the exte
 The basic lifecycle is:
 
 ```text
-docker run    → create a new container from an image + start it
-docker stop   → stop the container
-docker start  → start an existing stopped container
+docker run     → create a new container from an image + start it
+docker stop    → stop the container
+docker start   → start an existing stopped container
 docker restart → stop + start the same container
 ```
 
@@ -690,7 +737,7 @@ or restarted directly:
 docker restart nano-agent-test
 ```
 
-### `docker run` vs `docker start`
+### `docker run` vs. `docker start`
 
 ```text
 docker run
@@ -757,7 +804,40 @@ The timing parameters control how Docker performs these checks:
 --retries=3
 ```
 
-`--start-period` is an initial grace period for the application to start; it is **not** added before every health check. After startup, Docker performs checks at the configured `--interval`. The `--timeout` sets the maximum duration of each individual check, so if a check takes the full timeout, the next check begins roughly `timeout + interval` later. With our settings, a failed check can therefore take up to about **33 seconds** before the next check is attempted, rather than `5 + 30 + 3` seconds.
+`--start-period` is an initial grace period for the application to start; it is **not** added before every health check. After startup, Docker performs checks at the configured `--interval`.
+
+The `--timeout` sets the maximum duration of each individual check. If a check takes the full timeout, the next check begins roughly `timeout + interval` later.
+
+With our settings, a failed check can therefore take up to about **33 seconds** before the next check is attempted, rather than `5 + 30 + 3` seconds.
+
+A health check can fail even while the application continues to run. For example, when we temporarily changed the check from:
+
+```text
+/health
+```
+
+to:
+
+```text
+/health-does-not-exist
+```
+
+the application continued to serve `POST /run`, but Docker reported:
+
+```text
+Up ... (unhealthy)
+```
+
+This demonstrates:
+
+```text
+container process:  running ✓
+health check:       failing ✗
+```
+
+A `HEALTHCHECK` is therefore a **diagnostic signal**. It does not by itself restart or stop the container.
+
+---
 
 ## 12. Environment variables
 
@@ -812,51 +892,76 @@ The same principle applies to containers: the environment variables passed with 
 
 ## 13. Browser interface
 
-FastAPI automatically provides an interactive API interface at:
+`server_ui.py` provides the browser-facing part of the application.
+
+When the browser requests:
 
 ```text
-http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/
 ```
 
-This is useful for testing `POST /run` without writing a separate client.
-
-A minimal custom browser UI can also be provided by `server_ui.py`.
-
-The browser-facing application keeps the same `/run` API but adds a homepage containing:
-
-* a text input;
-* a **Run** button;
-* an area for the response.
-
-The flow becomes:
+it sends:
 
 ```text
-Browser
-   ↓
 GET /
-   ↓
-FastAPI
-   ↓
-HTML page
 ```
 
-Then, after pressing **Run**:
+FastAPI responds with the HTML page generated by the `homepage()` function.
+
+The page contains:
 
 ```text
-Browser
-   ↓ POST /run
-FastAPI
-   ↓
-nano-agent
-   ↓
-GPT
-   ↓
-JSON response
-   ↓
-Browser
+text input
+Run button
+result area
 ```
 
-The browser UI therefore sits **on top of the same HTTP API** rather than replacing it.
+When the **Run** button is pressed, JavaScript:
+
+1. reads the text input;
+2. sends a `POST /run` request;
+3. places the returned response into the result area.
+
+For example, entering:
+
+```text
+add 2 and 3
+```
+
+causes the browser to send approximately:
+
+```text
+POST /run
+Content-Type: application/json
+
+{"task":"add 2 and 3"}
+```
+
+The response is:
+
+```json
+{"response":"5"}
+```
+
+The browser then displays:
+
+```text
+5
+```
+
+The browser is therefore simply another HTTP client of the API.
+
+The distinction between the two main browser requests is:
+
+```text
+GET /
+    → retrieve the browser interface
+
+POST /run
+    → submit a task for the agent to process
+```
+
+The browser UI does not replace the API; it uses the same API.
 
 ---
 

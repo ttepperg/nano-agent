@@ -220,6 +220,110 @@ This creates an **image** containing the application and its runtime environment
 
 ---
 
+### 5.1 The Dockerfile
+
+A `Dockerfile` is a set of instructions for **building a Docker image**. It describes the environment our application needs and what should happen when a container is started from the resulting image.
+
+Our Dockerfile is:
+
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+
+CMD ["uvicorn", "server_ui:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### 5.2 What the instructions mean
+
+```text
+FROM
+```
+
+Selects the **base image** on which our image is built. Here, we start from a minimal Python 3.12 environment.
+
+```text
+WORKDIR /app
+```
+
+Sets `/app` as the working directory inside the image/container.
+
+```text
+COPY requirements.txt .
+```
+
+Copies the dependency file from the build context into `/app`.
+
+```text
+RUN pip install --no-cache-dir -r requirements.txt
+```
+
+Runs a command **while building the image**, installing the Python dependencies.
+
+```text
+COPY . .
+```
+
+Copies the rest of the application into the image.
+
+```text
+EXPOSE 8000
+```
+
+Documents that the application is expected to listen on port `8000` inside the container. It does **not** itself publish the port to the host; that is done when the container is run with `-p`.
+
+```text
+HEALTHCHECK ...
+```
+
+Defines a test Docker periodically performs to determine whether the application inside the container is responding correctly.
+
+```text
+CMD [...]
+```
+
+Defines the **default command executed when a container is started from the image**.
+
+In our case, this launches Uvicorn, which loads `server_ui:app` and listens on port `8000`.
+
+
+### Build time vs. container runtime
+
+A useful distinction is:
+
+```text
+docker build
+    ↓
+Dockerfile instructions
+    ↓
+IMAGE
+```
+
+and later:
+
+```text
+docker run / docker start
+    ↓
+CONTAINER
+    ↓
+CMD starts Uvicorn
+```
+
+Some Dockerfile instructions therefore act **during image construction** (`FROM`, `COPY`, `RUN`), while others describe **how the resulting container should run** (`CMD`, `HEALTHCHECK`).
+
+`EXPOSE` is mainly documentation/metadata: the actual host-to-container port mapping is established with `docker run -p ...`.
+
+
 ## 6. Image vs. container
 
 A useful analogy is:
@@ -471,7 +575,30 @@ show the container's output.
 
 ---
 
-## 11. Environment variables
+## 11. Container health checks
+
+A Docker `HEALTHCHECK` tests whether the application inside the container is actually responding, rather than merely checking whether the container's main process is running.
+
+Our health check calls:
+
+```text
+GET http://127.0.0.1:8000/health
+```
+
+from **inside the container**.
+
+The timing parameters control how Docker performs these checks:
+
+```text
+--interval=30s
+--timeout=3s
+--start-period=5s
+--retries=3
+```
+
+`--start-period` is an initial grace period for the application to start; it is **not** added before every health check. After startup, Docker performs checks at the configured `--interval`. The `--timeout` sets the maximum duration of each individual check, so if a check takes the full timeout, the next check begins roughly `timeout + interval` later. With our settings, a failed check can therefore take up to about **33 seconds** before the next check is attempted, rather than `5 + 30 + 3` seconds.
+
+## 12. Environment variables
 
 Environment variables are inherited by processes.
 
@@ -522,7 +649,7 @@ The same principle applies to containers: the environment variables passed with 
 
 ---
 
-## 12. Browser interface
+## 13. Browser interface
 
 FastAPI automatically provides an interactive API interface at:
 
@@ -572,7 +699,7 @@ The browser UI therefore sits **on top of the same HTTP API** rather than replac
 
 ---
 
-## 13. Current end-to-end architecture
+## 14. Current end-to-end architecture
 
 At this stage, the complete system is:
 

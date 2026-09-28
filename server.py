@@ -33,6 +33,10 @@ class RunRequest(BaseModel):
 # Create a web application
 app = FastAPI()
 
+# health endpoint
+@app.get("/health")
+def health():
+    return {"status": "OK"}
 
 # When an HTTP POST arrives at /run (e.g. http:someurl/run), execute this function (run_agent)
 @app.post("/run")

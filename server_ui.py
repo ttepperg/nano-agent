@@ -30,8 +30,21 @@ class RunRequest(BaseModel):
 # Create a web application
 app = FastAPI()
 
+# health endpoint
+@app.get("/health")
+def health():
+    return {"status": "OK"}
 
 # Simple browser interface
+# When a browser makes a GET request to / (relative to the server's origin), this script calls homepage() and return HTML.
+# The response_class=HTMLResponse tells FastAPI that we're returning HTML, rather than JSON.
+# async function runAgent(): JavaScript sends the HTTP request
+# So the browser UI is essentially doing automatically what our curl command was doing manually.
+# curl                    Browser JavaScript
+# ────                    ──────────────────
+# -X POST                 method: "POST"
+# -H "Content-Type: ..."  headers: ...
+# -d '{"task": ...}'      body: JSON.stringify(...)
 @app.get("/", response_class=HTMLResponse)
 def homepage():
     return """

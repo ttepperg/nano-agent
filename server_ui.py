@@ -63,20 +63,40 @@ def homepage():
         <pre id="result"></pre>
 
         <script>
-        async function runAgent() {
-            const task = document.getElementById("task").value;
 
-            const response = await fetch("/run", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({task: task})
-            });
+            async function runAgent() {
+                const task = document.getElementById("task").value;
+                const result = document.getElementById("result");
 
-            const data = await response.json();
-            document.getElementById("result").textContent = data.response;
-        }
+                result.textContent = "Running...";
+
+                try {
+                    const response = await fetch("/run", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({task: task})
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+
+                        result.textContent =
+                            `Server error (${response.status}): ` +
+                            (errorText || "The request failed.");
+                        return;
+                    }
+
+                    const data = await response.json();
+                    result.textContent = data.response;
+
+                } catch (error) {
+                    result.textContent =
+                        "Could not connect to the server.";
+                }
+            }
+
         </script>
     </body>
     </html>

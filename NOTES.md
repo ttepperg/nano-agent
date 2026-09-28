@@ -965,6 +965,46 @@ The browser UI does not replace the API; it uses the same API.
 
 ---
 
+### Error handling
+
+The browser UI explicitly distinguishes between a server-side HTTP error and a failure to connect to the server.
+
+If the server is reached but the request fails, for example with HTTP `500`, the UI reports:
+
+```text
+Server error (500): Internal Server Error
+```
+
+If the server cannot be reached at all, the JavaScript `fetch()` call fails and the UI reports:
+
+```text
+Could not connect to the server.
+```
+
+These are different failure modes:
+
+```text
+server reachable
+    ↓
+HTTP 500
+    ↓
+Server error (...)
+
+
+server not reachable
+    ↓
+fetch() fails
+    ↓
+Could not connect to the server.
+```
+
+During testing, an additional bug was discovered: the initial error-handling code attempted to parse every response as JSON before checking the HTTP status. FastAPI's default `500 Internal Server Error` response is not JSON, so the JSON parsing itself failed and incorrectly triggered the connection-error message.
+
+The fix is to check `response.ok` first and read the error response as text when the HTTP status indicates failure.
+
+This means the UI now provides useful feedback for both backend failures and genuine connection failures.
+
+
 ## 14. Current end-to-end architecture
 
 At this stage, the complete system is:

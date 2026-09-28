@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+.DS_Store
+
+NOTES.md
+README.md
+images/
+extras/
+
+get_request.sh
+post_request.sh
+start_server.sh
+mock_llm.py
+mock_llm_server.py

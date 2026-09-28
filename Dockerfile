@@ -1,4 +1,4 @@
-# Starting environment
+# Starting environment (this pulls a Python image provided by Docker itself)
 FROM python:3.12-slim
 
 # Where our app lives inside the container.
@@ -10,6 +10,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the project in.
 COPY . .
+
+# Create an unprivileged application user
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid appuser --create-home appuser
+
+# Run the application as the unprivileged user
+USER appuser
 
 # app listens on port 8000
 EXPOSE 8000

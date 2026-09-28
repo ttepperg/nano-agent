@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 8000
 
 # Starts FastAPI when the container runs.
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "server_ui:app", "--host", "0.0.0.0", "--port", "8000"]

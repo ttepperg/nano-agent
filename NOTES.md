@@ -975,8 +975,7 @@ The variables supplied with `--env-file` become part of the container's environm
 docker exec nano-agent-test sh -c 'echo "LLM_BACKEND=$LLM_BACKEND" ; test -n "$OPENAI_API_KEY" && echo "OPENAI_API_KEY is set"'
 '
 ```
-
-This verifies that the secret is available to the application without printing its value.
+This confirms that the ordinary configuration variable has the expected value and that the API key is present, without printing the secret itself.
 
 ## 13. Browser interface
 

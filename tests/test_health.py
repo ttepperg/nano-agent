@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
 
-from server_ui import app
+import server_ui
 
 
-client = TestClient(app)
+client = TestClient(server_ui.app)
 
 
 def test_health():

@@ -936,7 +936,7 @@ The same principle applies to containers: the environment variables passed with 
 
 ---
 
-### `.env` and runtime configuration
+### `.env`, runtime configuration and secrets
 
 Environment-specific configuration can be kept in a local `.env` file rather than being embedded in the Docker image or written directly into the `docker run` command.
 

@@ -936,6 +936,40 @@ The same principle applies to containers: the environment variables passed with 
 
 ---
 
+### `.env` and runtime configuration
+
+Environment-specific configuration can be kept in a local `.env` file rather than being embedded in the Docker image or written directly into the `docker run` command.
+
+For example:
+
+```text
+LLM_BACKEND=gpt
+OPENAI_API_KEY=your-real-api-key
+```
+
+The `.env` file contains the actual local values, including secrets, and should **not** be committed to Git or copied into the Docker image. It is therefore listed in both `.gitignore` and `.dockerignore`.
+
+A `.env.example` file can be committed to the repository as a template:
+
+```text
+LLM_BACKEND=gpt
+OPENAI_API_KEY=your-openai-api-key-here
+```
+
+It documents which variables are required without containing real credentials.
+
+The variables can be supplied to the container at runtime with:
+
+```bash
+docker run --name nano-agent-test \
+    -p 8000:8000 \
+    --env-file .env \
+    nano-agent
+```
+
+This keeps the Docker image independent of the environment in which it is run: the same image can be used with different runtime configuration and credentials.
+
+
 ## 13. Browser interface
 
 `server_ui.py` provides the browser-facing part of the application.

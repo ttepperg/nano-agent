@@ -969,6 +969,14 @@ docker run --name nano-agent-test \
 
 This keeps the Docker image independent of the environment in which it is run: the same image can be used with different runtime configuration and credentials.
 
+The variables supplied with `--env-file` become part of the container's environment. They can be verified from inside the running container, for example:
+
+```bash
+docker exec nano-agent-test sh -c 'echo "LLM_BACKEND=$LLM_BACKEND" ; test -n "$OPENAI_API_KEY" && echo "OPENAI_API_KEY is set"'
+'
+```
+
+This verifies that the secret is available to the application without printing its value.
 
 ## 13. Browser interface
 

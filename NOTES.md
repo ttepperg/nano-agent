@@ -541,6 +541,57 @@ This is an example of the **least-privilege principle**: give the application wr
 
 ---
 
+### Running the agent from the CLI
+
+The same Docker image can also be used to run the agent directly from the command line, without starting Uvicorn or the browser interface.
+
+Override the image's default `CMD`:
+
+```bash
+docker run --rm -it \
+    -e LLM_BACKEND=gpt \
+    -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+    nano-agent python nano_agent.py
+```
+
+The final argument:
+
+```text
+python nano_agent.py
+```
+
+replaces the `CMD` defined in the `Dockerfile` for this particular container.
+
+Thus the same image can be used for different purposes:
+
+```text
+nano-agent image
+    ├── web container
+    │     └── Uvicorn → FastAPI → nano-agent
+    │
+    └── CLI container
+          └── python nano_agent.py
+```
+
+`--rm` removes the CLI container automatically when it exits, while `-it` provides an interactive terminal.
+
+An alternative during development is to enter an already-running web container with:
+
+```bash
+docker exec -it nano-agent-test /bin/sh
+```
+
+and then run:
+
+```bash
+python nano_agent.py
+```
+
+This works, but starts an additional process inside the web container. Running a separate CLI container keeps the two roles independent.
+
+Because a new CLI container has its own filesystem, changes to `data/conversation.json` are not shared with another container and are lost when a container created with `--rm` is removed. Persistent shared application data will therefore need a separate storage mechanism.
+
+
 ## 8. Where does Uvicorn run?
 
 In our setup, **Uvicorn runs inside the container**.

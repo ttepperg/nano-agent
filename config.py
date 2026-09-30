@@ -11,8 +11,8 @@ CONVERSATION_FILE = "data/conversation.json"
 RESET_CHAT = False
 
 # SERVER DETAILS
-# Select via environmental variable (fallback: 'mock')
-# export LLM_BACKEND='mock' | 'gemini'
+# Select via environmental variable (fallback: 'mock'), e.g.:
+#   bash> export LLM_BACKEND='mock' | 'gemini'
 
 MOCK_PORT = 8001
 

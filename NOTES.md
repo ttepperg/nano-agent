@@ -1112,6 +1112,54 @@ The fix is to check `response.ok` before attempting to parse a successful respon
 This means the UI now provides useful feedback for both backend failures and genuine connection failures.
 
 
+### Automated API tests
+
+The FastAPI application is tested with `pytest` and FastAPI's `TestClient`. `TestClient` allows the application to be exercised directly, without starting Uvicorn or making a real network connection.
+
+The current tests cover three basic cases:
+
+```text
+test_health.py
+    → GET /health
+    → expected HTTP 200 response
+
+test_run.py
+    → valid POST /run request
+    → agent is replaced by a fake during the test
+    → expected HTTP 200 response and JSON result
+
+test_validation.py
+    → invalid POST /run request with no task
+    → FastAPI/Pydantic rejects the request
+    → expected HTTP 422 response
+```
+
+Together they cover:
+
+```text
+happy paths
+    → /health
+    → valid /run request
+
+failure path
+    → invalid /run request
+```
+
+The `test_run.py` test deliberately does not call the real agent or GPT API. It replaces `server_ui.agent` temporarily with a small fake function, allowing the HTTP layer to be tested independently of the agent and external services.
+
+The tests can be run with:
+
+```bash
+pytest
+```
+
+A successful run currently reports:
+
+```text
+3 passed
+```
+
+
 ## 14. Current end-to-end architecture
 
 At this stage, the complete system is:

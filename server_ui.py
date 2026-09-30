@@ -68,7 +68,7 @@ def homepage():
                 const task = document.getElementById("task").value;
                 const result = document.getElementById("result");
 
-                result.textContent = "Running...";
+                result.textContent = "Thinking...";
 
                 try {
                     const response = await fetch("/run", {

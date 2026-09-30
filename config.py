@@ -6,6 +6,9 @@ import os
 DEBUG_ON = True
 TRACE_ON = True
 
+# CONVERSATION SETTINGS
+CONVERSATION_FILE = "data/conversation.json"
+RESET_CHAT = False
 
 # SERVER DETAILS
 # Select via environmental variable (fallback: 'mock')

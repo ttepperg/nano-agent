@@ -3,7 +3,7 @@
 import json
 import time
 import re
-from config import DEBUG_ON, TRACE_ON
+from config import DEBUG_ON, TRACE_ON, CONVERSATION_FILE
 
 
 def trace(t, l):
@@ -23,6 +23,6 @@ def extract_keyval(text):
         value = match.group(2)
         return key, value
 
-def save_conversation(conversation, filename="./data/conversation.json"):
+def save_conversation(conversation, filename=CONVERSATION_FILE):
     with open(filename, "w") as f:
         json.dump(conversation, f, indent=2)

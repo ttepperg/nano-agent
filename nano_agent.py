@@ -29,7 +29,8 @@ from guardrails import INPUT_RULES, OUTPUT_RULES, check_gate
 from utils import trace, save_conversation
 from llm_client import ask_llm
 from cli import parse_args
-from config import DEBUG_ON, TRACE_ON
+from config import DEBUG_ON, TRACE_ON, CONVERSATION_FILE, RESET_CHAT
+from pathlib import Path
 
 # SYSTEM PROMPT
 SYSTEM = "You have tools. add(a,b) to add two numbers. upper(text) to capitalize text. remember() to save facts. Use them when needed. Be concise."
@@ -42,6 +43,16 @@ memory_dict = {}
 conversation = [
     {"role": "system", "content": SYSTEM},
 ]
+if not RESET_CHAT:
+    if Path(CONVERSATION_FILE).is_file():
+        with open(CONVERSATION_FILE, 'r') as f:
+            conversation = json.load(f)
+        print("Loaded saved conversation")
+    else:
+        print("No saved conversation; starting new one")
+else:
+    print("Starting new conversation")
+save_conversation(conversation)
 
 # messages and memory updated dynamically
 state = {

@@ -39,7 +39,7 @@ def health():
 # When a browser makes a GET request to / (relative to the server's origin), this script calls homepage() and return HTML.
 # The response_class=HTMLResponse tells FastAPI that we're returning HTML, rather than JSON.
 # async function runAgent(): JavaScript sends the HTTP request
-# So the browser UI is essentially doing automatically what our curl command was doing manually.
+# So the browser UI is essentially doing automatically what our curl command was doing manually (compare to post_request.sh):
 # curl                    Browser JavaScript
 # ────                    ──────────────────
 # -X POST                 method: "POST"

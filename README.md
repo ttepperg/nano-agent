@@ -144,6 +144,19 @@ python nano_agent.py --help
 
 to see all available options.
 
+### Conversation persistence
+
+By default, the agent can persist the current conversation to `data/conversation.json` and restore it when a new session starts.
+
+This behaviour is controlled by `RESET_CHAT` in `config.py`:
+
+* `RESET_CHAT = True` starts a new conversation.
+* `RESET_CHAT = False` loads the saved conversation if one exists; otherwise a new conversation is started.
+
+The conversation is saved after initialisation and after each interaction with the LLM.
+
+Set `RESET_CHAT = True` whenever you want to deliberately start a fresh conversation.
+
 ### Model API testing
 
 The `extras/model_api_test.py` script can be used to test the configured model APIs independently of the agent.

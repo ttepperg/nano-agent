@@ -973,7 +973,6 @@ The variables supplied with `--env-file` become part of the container's environm
 
 ```bash
 docker exec nano-agent-test sh -c 'echo "LLM_BACKEND=$LLM_BACKEND" ; test -n "$OPENAI_API_KEY" && echo "OPENAI_API_KEY is set"'
-'
 ```
 This confirms that the ordinary configuration variable has the expected value and that the API key is present, without printing the secret itself.
 
@@ -1159,6 +1158,48 @@ A successful run currently reports:
 3 passed
 ```
 
+### Persistent conversation storage
+
+The current conversation state is stored in `data/conversation.json`. When `RESET_CHAT = False`, the application loads this file at startup if it exists; otherwise it starts a new conversation. When `RESET_CHAT = True`, a new conversation is started and saved immediately.
+
+The conversation is saved to `conversation.json` during initialisation and after every interaction with the LLM, so the file always contains the latest conversation state.
+
+In the Docker deployment, `data/` is mounted as a named Docker volume:
+
+```bash
+-v nano-agent-data:/app/data
+```
+
+passed as an additional flag to the `docker run` command (Sec. 7).
+
+This keeps the conversation state independent of the container lifecycle. The container can therefore be stopped, removed, and recreated while the conversation remains available through the same Docker volume.
+
+The volume is persistent storage; deleting the volume itself deletes the stored conversation. The volume is created via:
+
+```bash
+docker volume create nano-agent-data
+```
+
+and its existence can be inspected with:
+
+```bash
+docker volume ls
+```
+
+The volume's configuration can be inspected with:
+
+```bash
+docker volume inspect nano-agent-data
+```
+
+Its contents can be inspected by temporarily mounting it into a container:
+
+```bash
+docker run --rm \
+    -v nano-agent-data:/app/data \
+    nano-agent \
+    sh -c 'ls -la /app/data'
+```
 
 ## 14. Current end-to-end architecture
 

@@ -1201,6 +1201,46 @@ docker run --rm \
     sh -c 'ls -la /app/data'
 ```
 
+### Container restart policy
+
+The production container is configured with Docker's `unless-stopped` restart policy:
+
+```bash
+--restart unless-stopped
+```
+
+This causes Docker to restart the container automatically if its main process exits unexpectedly, and also after a Docker daemon restart. A container that is explicitly stopped by the user is not restarted automatically.
+
+The policy can be inspected with:
+
+```bash
+docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' nano-agent
+```
+
+The restart behaviour was tested with a temporary container whose main process exits after 15 seconds:
+
+```bash
+docker run -d \
+    --name restart-test \
+    --restart unless-stopped \
+    nano-agent \
+    sh -c 'sleep 15; exit 1'
+```
+
+The restart was confirmed with:
+
+```bash
+docker inspect -f '{{.RestartCount}}' restart-test
+```
+
+which returned a restart count greater than zero.
+
+Containers are normally run in detached mode (`-d`) so that the service runs independently of the terminal from which it was started. Its output can be followed with:
+
+```bash
+docker logs -f nano-agent
+```
+
 ## 14. Current end-to-end architecture
 
 At this stage, the complete system is:

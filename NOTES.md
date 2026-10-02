@@ -112,8 +112,7 @@ server_ui.py
 
 The details of how the browser interface is implemented are described in Section 13.
 
-
-### FastAPI and Uvicorn
+### 2.3 FastAPI and Uvicorn
 
 A useful mental model is:
 
@@ -591,7 +590,6 @@ This works, but starts an additional process inside the web container. Running a
 
 Because a new CLI container has its own filesystem, changes to `data/conversation.json` are not shared with another container and are lost when a container created with `--rm` is removed. Persistent shared application data will therefore need a separate storage mechanism.
 
-
 ## 8. Where does Uvicorn run?
 
 In our setup, **Uvicorn runs inside the container**.
@@ -783,28 +781,6 @@ or restarted directly:
 docker restart nano-agent-test
 ```
 
-### `docker run` vs. `docker start`
-
-```text
-docker run
-    ↓
-image
-    ↓
-NEW container
-    ↓
-start it
-```
-
-whereas:
-
-```text
-docker start
-    ↓
-EXISTING stopped container
-    ↓
-start it again
-```
-
 If a container is started with `--rm`, Docker automatically removes it when it stops.
 
 Useful inspection commands:
@@ -974,6 +950,7 @@ The variables supplied with `--env-file` become part of the container's environm
 ```bash
 docker exec nano-agent-test sh -c 'echo "LLM_BACKEND=$LLM_BACKEND" ; test -n "$OPENAI_API_KEY" && echo "OPENAI_API_KEY is set"'
 ```
+
 This confirms that the ordinary configuration variable has the expected value and that the API key is present, without printing the secret itself.
 
 ## 13. Browser interface
@@ -1070,7 +1047,6 @@ POST /run
 
 The browser UI does not replace the API; it uses the same API.
 
-
 ### 13.3 Error handling
 
 The browser UI explicitly distinguishes between a server-side HTTP error and a failure to connect to the server.
@@ -1110,8 +1086,9 @@ The fix is to check `response.ok` before attempting to parse a successful respon
 
 This means the UI now provides useful feedback for both backend failures and genuine connection failures.
 
+---
 
-### Automated API tests
+## 14. Automated API tests
 
 The FastAPI application is tested with `pytest` and FastAPI's `TestClient`. `TestClient` allows the application to be exercised directly, without starting Uvicorn or making a real network connection.
 
@@ -1158,7 +1135,9 @@ A successful run currently reports:
 3 passed
 ```
 
-### Environment-dependent logging
+---
+
+## 15. Environment-dependent logging
 
 The `DEBUG_ON` and `TRACE_ON` settings are controlled through environment variables rather than being hard-coded in `config.py`.
 
@@ -1182,7 +1161,9 @@ With both settings disabled, the application produces only normal operational ou
 
 This behaviour was tested in the Docker container with a real UI request and confirmed to work as intended.
 
-### Persistent conversation storage
+---
+
+## 16. Persistent conversation storage
 
 The current conversation state is stored in `data/conversation.json`. When `RESET_CHAT = False`, the application loads this file at startup if it exists; otherwise it starts a new conversation. When `RESET_CHAT = True`, a new conversation is started and saved immediately.
 
@@ -1194,7 +1175,7 @@ In the Docker deployment, `data/` is mounted as a named Docker volume:
 -v nano-agent-data:/app/data
 ```
 
-passed as an additional flag to the `docker run` command (Sec. 7).
+passed as an additional flag to the `docker run` command (Sec. 18).
 
 This keeps the conversation state independent of the container lifecycle. The container can therefore be stopped, removed, and recreated while the conversation remains available through the same Docker volume.
 
@@ -1225,7 +1206,9 @@ docker run --rm \
     sh -c 'ls -la /app/data'
 ```
 
-### Container restart policy
+---
+
+## 17. Container restart policy
 
 The production container is configured with Docker's `unless-stopped` restart policy:
 
@@ -1265,7 +1248,9 @@ Containers are normally run in detached mode (`-d`) so that the service runs ind
 docker logs -f nano-agent
 ```
 
-### Running the production container
+---
+
+## 18. Running the production container
 
 The production container can be started in detached mode with:
 
@@ -1314,8 +1299,86 @@ docker rm nano-agent-prod
 
 Removing the container does not remove the `nano-agent-data` volume or the conversation stored in it.
 
+---
 
-## 14. Current end-to-end architecture
+## 19. Docker Compose deployment
+
+The local production deployment is defined in `compose.yaml`. It collects the runtime configuration previously supplied through the `docker run` command into a single declarative configuration.
+
+### 19.1 First-time setup
+
+Before using Docker Compose, ensure that Docker and Docker Compose are installed, `.env` contains the required runtime configuration, and the persistent conversation volume exists:
+
+```bash
+docker volume create nano-agent-data
+```
+
+The Docker Compose commands should be run from the root directory of the `nano-agent` repository, where `compose.yaml`, `Dockerfile`, and `.env` are located.
+
+The image does not need to be built manually: the `build: .` directive in `compose.yaml` causes Compose to build the image when necessary.
+
+### 19.2 Compose configuration
+
+The service is defined as:
+
+```yaml
+services:
+  nano-agent:
+    build: .
+    container_name: nano-agent-prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - nano-agent-data:/app/data
+
+volumes:
+  nano-agent-data:
+    external: true
+    name: nano-agent-data
+```
+
+The `nano-agent-data` volume is declared as external so that Compose uses the existing Docker volume rather than creating a project-specific volume such as `nano-agent_nano-agent-data`. The volume is therefore independent of the Compose project and survives container removal.
+
+The complete application can be started in detached mode with:
+
+```bash
+docker compose up -d
+```
+
+Compose builds the image if necessary, creates the container and network, attaches the persistent volume, supplies the environment variables from `.env`, and applies the restart policy.
+
+The running service can be inspected with:
+
+```bash
+docker ps
+```
+
+and its output followed with:
+
+```bash
+docker logs -f nano-agent-prod
+```
+
+The deployment can be stopped and its container and network removed with:
+
+```bash
+docker compose down
+```
+
+This does not remove the external `nano-agent-data` volume, so conversation state survives and is available when the application is started again with:
+
+```bash
+docker compose up -d
+```
+
+The volume should **not** be removed with `docker compose down -v` when conversation data is to be preserved. In general, avoid deleting `nano-agent-data` unless the stored conversation is intentionally being discarded.
+
+The Compose deployment was tested by stopping and removing the container with `docker compose down`, starting it again with `docker compose up -d`, and confirming that the previously stored conversation was loaded from the persistent volume.
+
+## 20. Current end-to-end architecture
 
 At this stage, the complete system is:
 

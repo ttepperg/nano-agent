@@ -1,0 +1,15 @@
+services:
+    nano-agent:
+        build: .
+        container_name: nano-agent-prod
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        env_file:
+            - .env
+        volumes:
+            - nano-agent-data:/app/data
+volumes:
+    nano-agent-data:
+        external: true
+        name: nano-agent-data

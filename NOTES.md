@@ -1265,6 +1265,56 @@ Containers are normally run in detached mode (`-d`) so that the service runs ind
 docker logs -f nano-agent
 ```
 
+### Running the production container
+
+The production container can be started in detached mode with:
+
+```bash
+docker run -d \
+    --name nano-agent-prod \
+    --restart unless-stopped \
+    -p 8000:8000 \
+    --env-file .env \
+    -v nano-agent-data:/app/data \
+    nano-agent
+```
+
+This command combines the main runtime requirements:
+
+* `-d` runs the service independently of (detached from) the terminal.
+* `--restart unless-stopped` restarts the container after an unexpected exit or Docker restart.
+* `-p 8000:8000` maps port 8000 on the host to port 8000 in the container.
+* `--env-file .env` supplies environment-specific configuration.
+* `-v nano-agent-data:/app/data` mounts the persistent conversation volume.
+
+The named volume must be created beforehand with:
+
+```bash
+docker volume create nano-agent-data
+```
+
+The running container can be inspected with:
+
+```bash
+docker ps
+```
+
+and its output followed with:
+
+```bash
+docker logs -f nano-agent-prod
+```
+
+The container can be stopped and removed with:
+
+```bash
+docker stop nano-agent-prod
+docker rm nano-agent-prod
+```
+
+Removing the container does not remove the `nano-agent-data` volume or the conversation stored in it.
+
+
 ## 14. Current end-to-end architecture
 
 At this stage, the complete system is:

@@ -178,7 +178,7 @@ def main():
             break
 
         if not DEBUG_ON and not TRACE_ON:
-            print("[nano-agent] ... processing", end="\r", flush=True)
+            print("[nano-agent] ... thinking", end="\r", flush=True)
 
         result = agent(task, max_iters=args.max_iters)
 

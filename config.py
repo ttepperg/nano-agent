@@ -3,8 +3,8 @@
 import os
 
 # RUNTIME DIAGNOSTICS AND AGENT TRACING
-DEBUG_ON = True
-TRACE_ON = True
+DEBUG_ON = os.getenv("DEBUG_ON", "false").lower() == "true"
+TRACE_ON = os.getenv("TRACE_ON", "false").lower() == "true"
 
 # CONVERSATION SETTINGS
 CONVERSATION_FILE = "data/conversation.json"

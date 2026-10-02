@@ -1158,6 +1158,30 @@ A successful run currently reports:
 3 passed
 ```
 
+### Environment-dependent logging
+
+The `DEBUG_ON` and `TRACE_ON` settings are controlled through environment variables rather than being hard-coded in `config.py`.
+
+They are defined in `.env`:
+
+```text
+DEBUG_ON=true
+TRACE_ON=true
+```
+
+for development, while production uses:
+
+```text
+DEBUG_ON=false
+TRACE_ON=false
+```
+
+The values are converted from their environment-variable string representation to Python booleans when the configuration is loaded.
+
+With both settings disabled, the application produces only normal operational output: Uvicorn startup messages, conversation-loading status, and HTTP request logs. Detailed debug output, including the raw LLM response, and structured trace messages are suppressed.
+
+This behaviour was tested in the Docker container with a real UI request and confirmed to work as intended.
+
 ### Persistent conversation storage
 
 The current conversation state is stored in `data/conversation.json`. When `RESET_CHAT = False`, the application loads this file at startup if it exists; otherwise it starts a new conversation. When `RESET_CHAT = True`, a new conversation is started and saved immediately.

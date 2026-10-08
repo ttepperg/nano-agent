@@ -1378,6 +1378,25 @@ The volume should **not** be removed with `docker compose down -v` when conversa
 
 The Compose deployment was tested by stopping and removing the container with `docker compose down`, starting it again with `docker compose up -d`, and confirming that the previously stored conversation was loaded from the persistent volume.
 
+### 19.3 Deployment script
+
+The local production deployment can be started through the `deploy.sh` script:
+
+```bash
+./deploy.sh
+```
+
+The script ensures that the external `nano-agent-data` volume exists and then starts the application with Docker Compose:
+
+```bash
+docker volume inspect nano-agent-data >/dev/null 2>&1 || \
+    docker volume create nano-agent-data
+
+docker compose up -d
+```
+
+This provides a single, reproducible command for starting the local production deployment.
+
 ## 20. Current end-to-end architecture
 
 At this stage, the complete system is:

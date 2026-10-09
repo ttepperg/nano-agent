@@ -1400,6 +1400,14 @@ docker compose up -d
 
 Compose builds the image if necessary, creates the container and network, attaches the persistent volume, supplies the environment variables from `.env`, and applies the restart policy.
 
+After changing application files, use:
+
+```bash
+docker compose up -d --build
+```
+
+The `--build` flag explicitly asks Compose to rebuild the image before starting the service. Without it, Compose may reuse the existing image, and recent changes may not be apparent.
+
 The running service can be inspected with:
 
 ```bash

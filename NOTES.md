@@ -1115,6 +1115,24 @@ The fix is to check `response.ok` before attempting to parse a successful respon
 
 This means the UI now provides useful feedback for both backend failures and genuine connection failures.
 
+
+### 13.4 Separating frontend assets
+
+The browser interface is split into three files under `static/`:
+
+```text
+static/
+├── index.html
+├── style.css
+└── app.js
+```
+
+`server_ui.py` serves `index.html` at `/` using `FileResponse`. It mounts the `static/` directory at `/static`, allowing the browser to retrieve the stylesheet and JavaScript through `/static/style.css` and `/static/app.js`.
+
+The JavaScript is loaded in the HTML `<head>` using the `defer` attribute, so it executes after the HTML has been parsed.
+
+This separation keeps the page structure, styling, and browser interaction independent of the Python API implementation. The `/health` and `/run` endpoints remain in `server_ui.py`.
+
 ---
 
 ## 14. Automated API tests

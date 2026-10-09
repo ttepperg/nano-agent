@@ -18,7 +18,9 @@ Architecture:
     LLM
 """
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from nano_agent import agent
 from pydantic import BaseModel
 
@@ -29,6 +31,13 @@ class RunRequest(BaseModel):
 
 # Create a web application
 app = FastAPI()
+
+# mount static folder, which provides stylesheet and JavaScript files
+app.mount(
+    "/static",
+    StaticFiles(directory=Path(__file__).parent / "static"),
+    name="static",
+)
 
 # health endpoint
 @app.get("/health")
@@ -45,187 +54,10 @@ def health():
 # -X POST                 method: "POST"
 # -H "Content-Type: ..."  headers: ...
 # -d '{"task": ...}'      body: JSON.stringify(...)
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 def homepage():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Nano Agent</title>
-
-        <style>
-            html, body {
-                height: 100%;
-                margin: 0;
-            }
-
-            body {
-                height: 100vh;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            }
-
-            header {
-                padding: 0.25rem 1rem;
-            }
-
-            #conversation {
-                flex: 1;
-                min-height: 0;
-                overflow-y: auto;
-                padding: 1rem;
-                display: flex;
-                flex-direction: column;
-            }
-
-            #composer {
-                display: flex;
-                gap: 0.5rem;
-                padding: 0.75rem 1rem;
-                border-top: 1px solid #ddd;
-                background: white;
-            }
-
-            #task {
-                flex: 1;
-                min-width: 0;
-                padding: 0.6rem;
-            }
-
-            #composer button {
-                padding: 0.6rem 1rem;
-            }
-
-            .message {
-                max-width: 85%;
-                margin: 0.75rem 0;
-                padding: 0.75rem 1rem;
-                border-radius: 8px;
-                white-space: pre-wrap;
-                overflow-wrap: anywhere;
-            }
-
-            .user {
-                margin-left: auto;
-                background: #e8f2ff;
-            }
-
-            .agent {
-                margin-right: auto;
-                background: #f1f1f1;
-            }
-
-            .message-label {
-                display: block;
-                font-weight: bold;
-                margin-bottom: 0.25rem;
-            }
-        </style>
-
-    </head>
-    <body>
-
-        <header>
-            <h1>Nano Agent</h1>
-        </header>
-
-        <div id="conversation"></div>
-
-        <footer id="composer">
-            <input id="task" type="text"
-                   placeholder="Enter a task">
-            <button onclick="runAgent()">Run</button>
-        </footer>
-
-        <script>
-
-            let isRunning = false;
-
-            function scrollToBottom() {
-                const conversation = document.getElementById("conversation");
-
-                conversation.scrollTo({
-                    top: conversation.scrollHeight,
-                    behavior: "smooth"
-                });
-            }
-            function addMessage(role, text) {
-                const message = document.createElement("div");
-                message.className = `message ${role}`;
-
-                const label = document.createElement("strong");
-                label.className = "message-label";
-                label.textContent = role === "user" ? "You" : "Nano Agent";
-
-                const content = document.createElement("div");
-                content.textContent = text;
-
-                message.append(label, content);
-                document.getElementById("conversation").appendChild(message);
-
-                scrollToBottom();
-
-                return content;
-            }
-
-            async function runAgent() {
-                const taskInput = document.getElementById("task");
-                const task = taskInput.value.trim();
-
-                if (!task || isRunning) return;
-
-                isRunning = true;
-                const runButton = document.querySelector("#composer button");
-                runButton.disabled = true;
-
-                addMessage("user", task);
-                const agentContent = addMessage("agent", "Thinking...");
-                taskInput.value = "";
-
-                try {
-                    const response = await fetch("/run", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({task: task})
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        agentContent.textContent =
-                            `Server error (${response.status}): ` +
-                            (errorText || "The request failed.");
-                        return;
-                    }
-
-                    const data = await response.json();
-                    agentContent.textContent = data.response;
-
-                } catch (error) {
-                    agentContent.textContent =
-                        "Could not connect to the server.";
-                } finally {
-                    isRunning = false;
-                    runButton.disabled = false;
-                    scrollToBottom();
-                }
-            }
-
-            document.getElementById("task")
-            .addEventListener("keydown", event => {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    runAgent();
-                }
-            });
-        </script>
-
-    </body>
-    </html>
-    """
-
+    html_path = Path(__file__).parent / "static" / "index.html"
+    return FileResponse(html_path)
 
 # When an HTTP POST arrives at /run, execute the agent
 @app.post("/run")

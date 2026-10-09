@@ -140,6 +140,8 @@ def homepage():
 
         <script>
 
+            let isRunning = false;
+
             function scrollToBottom() {
                 const conversation = document.getElementById("conversation");
 
@@ -171,7 +173,11 @@ def homepage():
                 const taskInput = document.getElementById("task");
                 const task = taskInput.value.trim();
 
-                if (!task) return;
+                if (!task || isRunning) return;
+
+                isRunning = true;
+                const runButton = document.querySelector("#composer button");
+                runButton.disabled = true;
 
                 addMessage("user", task);
                 const agentContent = addMessage("agent", "Thinking...");
@@ -201,9 +207,19 @@ def homepage():
                     agentContent.textContent =
                         "Could not connect to the server.";
                 } finally {
+                    isRunning = false;
+                    runButton.disabled = false;
                     scrollToBottom();
                 }
             }
+
+            document.getElementById("task")
+            .addEventListener("keydown", event => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    runAgent();
+                }
+            });
         </script>
 
     </body>

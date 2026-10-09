@@ -1,6 +1,7 @@
 services:
     nano-agent:
         build: .
+        image: nano-agent:0.1.0
         container_name: nano-agent-prod
         restart: unless-stopped
         ports:

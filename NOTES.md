@@ -1335,6 +1335,7 @@ The service is defined as:
 services:
   nano-agent:
     build: .
+    image: nano-agent:0.1.0
     container_name: nano-agent-prod
     restart: unless-stopped
     ports:
@@ -1349,6 +1350,8 @@ volumes:
     external: true
     name: nano-agent-data
 ```
+
+The image is explicitly named nano-agent:0.1.0.. The version tag (0.1.0 = major.minor.patch) identifies this build and can be used to refer to the same image when publishing it to a container registry or deploying it elsewhere. Future releases can use a new tag, allowing different versions to be distinguished.
 
 The `nano-agent-data` volume is declared as external so that Compose uses the existing Docker volume rather than creating a project-specific volume such as `nano-agent_nano-agent-data`. The volume is therefore independent of the Compose project and survives container removal.
 

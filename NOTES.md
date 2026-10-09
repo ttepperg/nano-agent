@@ -81,7 +81,7 @@ python -m uvicorn server:app --reload
 Alternatively, simply invoke the script
 
 ```bash
-./start_server.sh
+./start_server.sh server_ui
 ```
 
 This starts Uvicorn, which runs the FastAPI application and listens for HTTP requests.

@@ -52,23 +52,130 @@ def homepage():
     <html>
     <head>
         <title>Nano Agent</title>
+
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+
+            body {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            header {
+                padding: 0.25rem 1rem;
+            }
+
+            #conversation {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 1rem;
+                display: flex;
+                flex-direction: column;
+            }
+
+            #composer {
+                display: flex;
+                gap: 0.5rem;
+                padding: 0.75rem 1rem;
+                border-top: 1px solid #ddd;
+                background: white;
+            }
+
+            #task {
+                flex: 1;
+                min-width: 0;
+                padding: 0.6rem;
+            }
+
+            #composer button {
+                padding: 0.6rem 1rem;
+            }
+
+            .message {
+                max-width: 85%;
+                margin: 0.75rem 0;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
+
+            .user {
+                margin-left: auto;
+                background: #e8f2ff;
+            }
+
+            .agent {
+                margin-right: auto;
+                background: #f1f1f1;
+            }
+
+            .message-label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 0.25rem;
+            }
+        </style>
+
     </head>
     <body>
-        <h1>Nano Agent</h1>
 
-        <input id="task" type="text" size="50"
-               placeholder="Enter a task">
-        <button onclick="runAgent()">Run</button>
+        <header>
+            <h1>Nano Agent</h1>
+        </header>
 
-        <pre id="result"></pre>
+        <div id="conversation"></div>
+
+        <footer id="composer">
+            <input id="task" type="text"
+                   placeholder="Enter a task">
+            <button onclick="runAgent()">Run</button>
+        </footer>
 
         <script>
 
-            async function runAgent() {
-                const task = document.getElementById("task").value;
-                const result = document.getElementById("result");
+            function scrollToBottom() {
+                const conversation = document.getElementById("conversation");
 
-                result.textContent = "Thinking...";
+                conversation.scrollTo({
+                    top: conversation.scrollHeight,
+                    behavior: "smooth"
+                });
+            }
+            function addMessage(role, text) {
+                const message = document.createElement("div");
+                message.className = `message ${role}`;
+
+                const label = document.createElement("strong");
+                label.className = "message-label";
+                label.textContent = role === "user" ? "You" : "Nano Agent";
+
+                const content = document.createElement("div");
+                content.textContent = text;
+
+                message.append(label, content);
+                document.getElementById("conversation").appendChild(message);
+
+                scrollToBottom();
+
+                return content;
+            }
+
+            async function runAgent() {
+                const taskInput = document.getElementById("task");
+                const task = taskInput.value.trim();
+
+                if (!task) return;
+
+                addMessage("user", task);
+                const agentContent = addMessage("agent", "Thinking...");
+                taskInput.value = "";
 
                 try {
                     const response = await fetch("/run", {
@@ -81,23 +188,24 @@ def homepage():
 
                     if (!response.ok) {
                         const errorText = await response.text();
-
-                        result.textContent =
+                        agentContent.textContent =
                             `Server error (${response.status}): ` +
                             (errorText || "The request failed.");
                         return;
                     }
 
                     const data = await response.json();
-                    result.textContent = data.response;
+                    agentContent.textContent = data.response;
 
                 } catch (error) {
-                    result.textContent =
+                    agentContent.textContent =
                         "Could not connect to the server.";
+                } finally {
+                    scrollToBottom();
                 }
             }
-
         </script>
+
     </body>
     </html>
     """

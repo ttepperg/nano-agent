@@ -78,9 +78,16 @@ Locally, the service can be started with:
 python -m uvicorn server:app --reload
 ```
 
+Alternatively, simply invoke the script
+
+```bash
+./start_server.sh
+```
+
 This starts Uvicorn, which runs the FastAPI application and listens for HTTP requests.
 
 `/run` is the HTTP endpoint handled by `run_agent()`.
+
 
 ### 2.2 Browser-enabled interface: `server_ui.py`
 
@@ -165,6 +172,12 @@ curl -X POST http://127.0.0.1:8000/run \
      -H "Content-Type: application/json" \
      -d '{"task":"add 2 and 3"}' \
      -w '\n'
+```
+
+Alternatively, simply invoke the script
+
+```bash
+./post_request.sh
 ```
 
 The response is HTTP JSON:
@@ -868,6 +881,12 @@ health check:       failing ✗
 ```
 
 A `HEALTHCHECK` is therefore a **diagnostic signal**. It does not by itself restart or stop the container.
+
+A quick health request can be performed by invoking the script
+
+```bash
+./get_health_request.sh
+```
 
 ---
 

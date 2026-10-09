@@ -235,7 +235,17 @@ Dockerfile
 
 with no extension.
 
-Build the Docker image (Docker Desktop must be running):
+**Before using Docker:** On macOS, start Docker Desktop and wait until the Docker Engine is running. Commands that require the engine, such as `docker ps`, `docker image ls`, `docker build`, and `docker compose up`, will fail if Docker Desktop is stopped.
+
+You can check whether the engine is available with:
+
+```bash
+docker ps
+```
+
+An empty list of containers is fine; a connection error means Docker isn't currently available. Note that `docker --version` only checks the CLI version, not whether the engine is running.
+
+Once Docker is up and running, build the Docker image (Docker Desktop must be running):
 
 ```bash
 docker build -t nano-agent .

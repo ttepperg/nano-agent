@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from nano_agent import agent
+from nano_agent import state
 from pydantic import BaseModel
 
 
@@ -62,4 +63,8 @@ def homepage():
 # When an HTTP POST arrives at /run, execute the agent
 @app.post("/run")
 def run_agent(request: RunRequest):
-    return {"response": agent(request.task)}
+    response = agent(request.task)
+    return {
+        "response": response,
+        "usage": state["usage"].copy(),
+    }

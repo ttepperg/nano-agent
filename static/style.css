@@ -65,3 +65,34 @@ header {
     font-weight: bold;
     margin-bottom: 0.25rem;
 }
+
+.usage {
+    margin-top: 0.6rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid #ddd;
+    color: #777;
+    font-size: 0.75rem;
+}
+
+#usage-panel {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    padding: 0.45rem 1rem;
+    border-top: 1px solid #ddd;
+    background: #f8f8f8;
+    color: #777;
+    font-size: 0.75rem;
+}
+
+#usage-panel .usage-title {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #999;
+}
+
+#usage-panel span:not(.usage-title) {
+    white-space: nowrap;
+}

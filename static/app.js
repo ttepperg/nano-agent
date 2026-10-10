@@ -61,6 +61,15 @@ async function runAgent() {
         const data = await response.json();
         agentContent.textContent = data.response;
 
+        if (data.usage) {
+            document.getElementById("prompt-tokens").textContent =
+                `Prompt: ${data.usage.prompt_tokens}`;
+            document.getElementById("completion-tokens").textContent =
+                `Completion: ${data.usage.completion_tokens}`;
+            document.getElementById("total-tokens").textContent =
+                `Total: ${data.usage.total_tokens}`;
+        }
+
     } catch (error) {
         agentContent.textContent =
             "Could not connect to the server.";

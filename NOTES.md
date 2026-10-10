@@ -1133,6 +1133,28 @@ The JavaScript is loaded in the HTML `<head>` using the `defer` attribute, so it
 
 This separation keeps the page structure, styling, and browser interaction independent of the Python API implementation. The `/health` and `/run` endpoints remain in `server_ui.py`.
 
+
+### 13.5 Token usage
+
+The `/run` endpoint returns the agent's response together with the token-usage counters from `state["usage"]`. The usage dictionary is copied when building the API response, so the returned values represent a snapshot of the current counters.
+
+The JSON response has the following structure:
+
+```json
+{
+  "response": "The agent's response",
+  "usage": {
+    "prompt_tokens": 125,
+    "completion_tokens": 38,
+    "total_tokens": 163
+  }
+}
+```
+
+The token counts above are illustrative.
+
+The browser interface displays the prompt, completion, and total token counts in a compact status bar at the bottom of the window. The counters are updated after each successful request and remain separate from the conversation messages.
+
 ---
 
 ## 14. Automated API tests

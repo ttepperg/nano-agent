@@ -30,6 +30,8 @@ jobs:
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run tests
+        env:
+          OPENAI_API_KEY: ci-test-key
         run: python -m pytest
 
       - name: Build Docker image

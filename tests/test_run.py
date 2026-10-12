@@ -7,6 +7,7 @@ import server_ui
 
 TASK = "add 2 and 3"
 EXPECTED_RESPONSE = "5"
+EXPECTED_USAGE = {'completion_tokens': 0, 'prompt_tokens': 0, 'total_tokens': 0}
 
 # From this point on, client can make simulated HTTP requests to server_ui.app
 client = TestClient(server_ui.app)
@@ -18,6 +19,7 @@ def test_run(monkeypatch):
         return EXPECTED_RESPONSE
 
     monkeypatch.setattr(server_ui, "agent", fake_agent)
+    monkeypatch.setitem(server_ui.state, "usage", EXPECTED_USAGE.copy())
 
     response = client.post(
         "/run",
@@ -25,4 +27,7 @@ def test_run(monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"response": EXPECTED_RESPONSE}
+    assert response.json() == {
+        "response": EXPECTED_RESPONSE,
+        'usage': EXPECTED_USAGE
+    }

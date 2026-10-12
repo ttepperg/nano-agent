@@ -1192,6 +1192,8 @@ failure path
 
 The `test_run.py` test deliberately does not call the real agent or GPT API. It replaces `server_ui.agent` temporarily with a small fake function, allowing the HTTP layer to be tested independently of the agent and external services.
 
+The `/run` API test verifies both the agent's response and the token-usage counters returned in the JSON response. The test replaces the agent with a mock and uses `monkeypatch` to set the usage counters to known values, ensuring the test does not depend on shared state left by other tests.
+
 The tests can be run with:
 
 ```bash

@@ -1515,3 +1515,181 @@ FastAPI     → translates HTTP ↔ Python
 nano-agent  → performs the agent work
 LLM API     → provides the language model
 ```
+-----
+
+## 21. GitHub Actions continuous integration (CI)
+
+### 21.1 Purpose
+
+GitHub Actions runs automated checks whenever changes are pushed to the repository or a pull request is opened. The continuous integration (CI) workflow checks that the Python tests pass and that the Docker image can be built.
+
+This provides an automated quality gate without deploying the application or publishing the Docker image.
+
+### 21.2 Preparing the workflow
+
+GitHub Actions discovers workflow files in `.github/workflows/`. Create the directory from the repository root if it does not already exist:
+
+```bash
+mkdir -p .github/workflows
+```
+
+Use the `.yaml` extension for consistency with `compose.yaml`. Our workflow is defined in `.github/workflows/ci.yaml`.
+
+Before writing the workflow, inspect the project dependencies and test configuration:
+
+```bash
+cat requirements.txt requirements-dev.txt pytest.ini
+```
+
+The relevant files are:
+
+* `requirements.txt`: application dependencies, including FastAPI, Uvicorn, Pydantic and Requests.
+* `requirements-dev.txt`: development and testing dependencies, including pytest and HTTPX.
+* `pytest.ini`: configures pytest to discover tests in `tests/` and adds the repository root to the Python import path.
+
+Keeping these dependencies in separate files allows CI to install both the application requirements and the additional packages needed for testing.
+
+### 21.3 CI workflow configuration
+
+The workflow is:
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: ci-test-key
+        run: python -m pytest
+
+      - name: Build Docker image
+        run: docker build -t nano-agent:ci .
+```
+
+The workflow contains one job with the following steps:
+
+1. Check out the repository contents.
+2. Set up Python 3.12.
+3. Install application and development dependencies.
+4. Run the test suite.
+5. Build a Docker image if the tests pass.
+
+The Docker image is built locally on the temporary GitHub-hosted runner. It is not pushed to a registry or deployed.
+
+The `permissions` setting grants the workflow read-only access to repository contents, which is sufficient for these checks.
+
+### 21.4 Choosing GitHub Actions versions
+
+The `uses` field identifies an action and the version to run:
+
+```yaml
+uses: actions/checkout@v7
+uses: actions/setup-python@v7
+```
+
+The action version is separate from the Python version selected with `python-version: "3.12"`.
+
+Before choosing an action version, consult its official repository and release notes:
+
+* https://github.com/actions/checkout/releases
+* https://github.com/actions/setup-python/releases
+
+Using a major-version tag such as `@v7` allows compatible minor and patch updates without changing the workflow. For stronger reproducibility and security, workflows can instead pin actions to full commit SHAs, updating those pins deliberately when adopting new releases.
+
+### 21.5 Running the checks locally
+
+Before pushing changes, run the same checks locally.
+
+Run the tests using the intended Python version:
+
+```bash
+python3.12 -m pytest
+```
+
+Build the Docker image:
+
+```bash
+docker build -t nano-agent:ci .
+```
+
+The image tag `nano-agent:ci` is a temporary testing tag. This command does not replace the versioned production image used by Docker Compose.
+
+Local success does not guarantee CI success: GitHub Actions starts in a fresh environment, so it can reveal dependencies on environment variables, untracked files or directories, and other local state.
+
+### 21.6 Handling environment variables in CI
+
+The first workflow run failed during test collection because `OPENAI_API_KEY` was not defined.
+
+The application expects this environment variable while importing its configuration. The tests mock the agent and do not require a real OpenAI API key.
+
+The workflow therefore supplies a harmless placeholder specifically to the test step:
+
+```yaml
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: ci-test-key
+        run: python -m pytest
+```
+
+This avoids adding a secret or copying the local `.env` file into CI. Real credentials must never be committed to the repository or embedded in the Docker image.
+
+### 21.7 Handling missing runtime directories
+
+The next CI failure exposed a dependency on `data/conversation.json`, which was not available in the clean checkout.
+
+The conversation file is runtime state, not source code. The application should be able to start without a previously saved conversation, and saving should create the required parent directory.
+
+The `save_conversation()` function in `utils.py` now ensures that the directory exists:
+
+```python
+path = Path(filename)
+path.parent.mkdir(parents=True, exist_ok=True)
+```
+
+The `parents=True` argument permits creation of missing parent directories; `exist_ok=True` avoids an error if the directory already exists.
+
+A regression test in `tests/test_conversation.py` uses pytest's `tmp_path` fixture to verify that saving a conversation creates a missing directory and writes the correct JSON. It does not access or modify the real conversation file.
+
+### 21.8 Monitoring and diagnosing CI runs
+
+After pushing a change, open the repository's **Actions** tab on GitHub and select the relevant workflow run.
+
+A green check indicates that the workflow completed successfully. A red cross indicates failure.
+
+To diagnose a failure:
+
+1. Open the failed workflow run and select the failed job.
+2. Expand the failed step.
+3. Read the first underlying error, rather than relying only on the final exit code.
+4. Reproduce the problem locally where possible.
+5. Fix the underlying issue, run the checks again, and push the change.
+
+For nano-agent, the current workflow verifies that the four tests pass and the Docker image builds. Successful CI does not publish or deploy the application; those remain separate operations.

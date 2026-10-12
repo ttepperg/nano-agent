@@ -4,7 +4,7 @@ import json
 import time
 import re
 from config import DEBUG_ON, TRACE_ON, CONVERSATION_FILE
-
+from pathlib import Path
 
 def trace(t, l):
     if TRACE_ON:
@@ -24,5 +24,7 @@ def extract_keyval(text):
         return key, value
 
 def save_conversation(conversation, filename=CONVERSATION_FILE):
-    with open(filename, "w") as f:
+    path = Path(filename)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w") as f:
         json.dump(conversation, f, indent=2)

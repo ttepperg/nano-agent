@@ -1606,7 +1606,149 @@ The Docker image is built locally on the temporary GitHub-hosted runner. It is n
 
 The `permissions` setting grants the workflow read-only access to repository contents, which is sufficient for these checks.
 
-### 21.4 Choosing GitHub Actions versions
+### 21.4 Understanding the workflow file
+
+The workflow file is written in YAML. Its structure describes when the workflow runs, which jobs it executes, and the individual steps within each job.
+
+**1. Name and triggers**
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+```
+
+* `name` defines the workflow's display name in GitHub's Actions interface.
+* `on` specifies the events that trigger the workflow.
+* `push` runs the checks whenever commits are pushed.
+* `pull_request` runs the checks for pull requests.
+
+This allows the checks to run automatically rather than relying on manual execution.
+
+**2. Permissions**
+
+```yaml
+permissions:
+  contents: read
+```
+
+This grants the workflow read-only access to repository contents. The workflow needs to check out and inspect the code, but it does not need permission to modify the repository or publish packages.
+
+**3. Job definition and runner**
+
+```yaml
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+```
+
+* `jobs` contains the jobs that make up the workflow.
+* `test-and-build` is our chosen job identifier; it is not a reserved word.
+* `runs-on` specifies the environment in which the job executes.
+
+GitHub provides a temporary Ubuntu runner for the job. This is a fresh environment, independent of the developer's local machine.
+
+**4. Checking out the repository**
+
+```yaml
+steps:
+  - name: Check out repository
+    uses: actions/checkout@v7
+```
+
+A job consists of an ordered list of steps. Each step either executes a command or invokes a GitHub Action.
+
+`actions/checkout` retrieves the repository contents so subsequent steps can access the source code, tests, dependency files and Dockerfile.
+
+The `@v7` suffix specifies the major version of the action, not the version of Python.
+
+**5. Setting up Python**
+
+```yaml
+- name: Set up Python
+  uses: actions/setup-python@v7
+  with:
+    python-version: "3.12"
+    cache: pip
+    cache-dependency-path: |
+      requirements.txt
+      requirements-dev.txt
+```
+
+`actions/setup-python` installs and configures the requested Python version for the runner.
+
+The `with` section supplies configuration options to the action:
+
+* `python-version` selects Python 3.12.
+* `cache: pip` enables caching of downloaded Python packages.
+* `cache-dependency-path` identifies the dependency files used to determine when the cache should be refreshed.
+
+After this step, commands can use `python` to invoke the configured interpreter. Locally, we use `python3.12` explicitly because our environment may have a different default Python version.
+
+**6. Installing dependencies**
+
+```yaml
+- name: Install dependencies
+  run: |
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt -r requirements-dev.txt
+```
+
+The `run` field executes shell commands on the runner. The pipe (`|`) allows multiple commands to be written on separate lines.
+
+The commands upgrade pip and install both the application dependencies and development dependencies. The latter include the packages needed to run the tests.
+
+**7. Running the tests**
+
+```yaml
+- name: Run tests
+  env:
+    OPENAI_API_KEY: ci-test-key
+  run: python -m pytest
+```
+
+The `env` section sets an environment variable for this step only.
+
+Our application expects `OPENAI_API_KEY` to exist during configuration and import. The tests replace the agent with a mock, so they do not need a real API key. We provide a harmless placeholder instead of exposing a secret or copying the local `.env` file into CI.
+
+The test command runs pytest using the project's configuration in `pytest.ini`. If this step fails, the job stops and the Docker build is skipped.
+
+**8. Building the Docker image**
+
+```yaml
+- name: Build Docker image
+  run: docker build -t nano-agent:ci .
+```
+
+This builds the image from the repository's Dockerfile and current build context (`.`).
+
+The `-t` option assigns the local image tag `nano-agent:ci`. The image exists only on the temporary runner: this step does not push it to a registry or deploy the application.
+
+Because steps execute in order, the Docker build runs only after the tests succeed.
+
+**9. How the workflow fits together**
+
+The overall sequence is:
+
+1. A push or pull request triggers the workflow.
+2. GitHub creates a temporary runner and checks out the code.
+3. Python is configured and dependencies are installed.
+4. The tests run with the required environment variable.
+5. If the tests pass, Docker builds the image.
+6. The workflow reports success or failure in GitHub's Actions interface.
+
+The same essential checks can be run locally before pushing:
+
+```bash
+python3.12 -m pytest
+docker build -t nano-agent:ci .
+```
+
+Local checks are useful, but CI is still important because its clean environment can expose missing runtime files, undeclared dependencies and assumptions that happen to be satisfied on the developer's machine.
+
+### 21.5 Choosing GitHub Actions versions
 
 The `uses` field identifies an action and the version to run:
 
@@ -1624,7 +1766,7 @@ Before choosing an action version, consult its official repository and release n
 
 Using a major-version tag such as `@v7` allows compatible minor and patch updates without changing the workflow. For stronger reproducibility and security, workflows can instead pin actions to full commit SHAs, updating those pins deliberately when adopting new releases.
 
-### 21.5 Running the checks locally
+### 21.6 Running the checks locally
 
 Before pushing changes, run the same checks locally.
 
@@ -1644,7 +1786,7 @@ The image tag `nano-agent:ci` is a temporary testing tag. This command does not 
 
 Local success does not guarantee CI success: GitHub Actions starts in a fresh environment, so it can reveal dependencies on environment variables, untracked files or directories, and other local state.
 
-### 21.6 Handling environment variables in CI
+### 21.7 Handling environment variables in CI
 
 The first workflow run failed during test collection because `OPENAI_API_KEY` was not defined.
 
@@ -1661,7 +1803,7 @@ The workflow therefore supplies a harmless placeholder specifically to the test 
 
 This avoids adding a secret or copying the local `.env` file into CI. Real credentials must never be committed to the repository or embedded in the Docker image.
 
-### 21.7 Handling missing runtime directories
+### 21.8 Handling missing runtime directories
 
 The next CI failure exposed a dependency on `data/conversation.json`, which was not available in the clean checkout.
 
@@ -1678,7 +1820,7 @@ The `parents=True` argument permits creation of missing parent directories; `exi
 
 A regression test in `tests/test_conversation.py` uses pytest's `tmp_path` fixture to verify that saving a conversation creates a missing directory and writes the correct JSON. It does not access or modify the real conversation file.
 
-### 21.8 Monitoring and diagnosing CI runs
+### 21.9 Monitoring and diagnosing CI runs
 
 After pushing a change, open the repository's **Actions** tab on GitHub and select the relevant workflow run.
 

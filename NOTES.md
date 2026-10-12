@@ -1739,15 +1739,6 @@ The overall sequence is:
 5. If the tests pass, Docker builds the image.
 6. The workflow reports success or failure in GitHub's Actions interface.
 
-The same essential checks can be run locally before pushing:
-
-```bash
-python3.12 -m pytest
-docker build -t nano-agent:ci .
-```
-
-Local checks are useful, but CI is still important because its clean environment can expose missing runtime files, undeclared dependencies and assumptions that happen to be satisfied on the developer's machine.
-
 ### 21.5 Choosing GitHub Actions versions
 
 The `uses` field identifies an action and the version to run:
@@ -1784,7 +1775,7 @@ docker build -t nano-agent:ci .
 
 The image tag `nano-agent:ci` is a temporary testing tag. This command does not replace the versioned production image used by Docker Compose.
 
-Local success does not guarantee CI success: GitHub Actions starts in a fresh environment, so it can reveal dependencies on environment variables, untracked files or directories, and other local state.
+Local success does not guarantee CI success: GitHub Actions starts in a fresh environment, so it can reveal dependencies on environment variables, untracked files or directories, expose missing runtime files, undeclared dependencies and assumptions that happen to be satisfied on the developer's machine.
 
 ### 21.7 Handling environment variables in CI
 
